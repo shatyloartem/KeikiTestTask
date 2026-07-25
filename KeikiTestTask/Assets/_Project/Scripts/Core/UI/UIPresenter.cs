@@ -17,6 +17,8 @@ namespace Core.UI
 
         protected TView View { get; }
 
+        protected virtual bool ShowViewOnInitialize => true;
+
         public void Initialize()
         {
             if (_isInitialized)
@@ -26,7 +28,9 @@ namespace Core.UI
 
             SubscribeToEvents();
             OnInitialized();
-            View.Show();
+
+            if (ShowViewOnInitialize)
+                View.Show();
         }
 
         public void Dispose()
