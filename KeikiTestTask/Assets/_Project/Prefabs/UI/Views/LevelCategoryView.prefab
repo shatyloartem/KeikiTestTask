@@ -327,7 +327,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 520}
+  m_SizeDelta: {x: 0, y: 620}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &285729211015169710
 MonoBehaviour:
@@ -345,7 +345,7 @@ MonoBehaviour:
   m_MinWidth: -1
   m_MinHeight: -1
   m_PreferredWidth: -1
-  m_PreferredHeight: 520
+  m_PreferredHeight: 620
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
@@ -411,7 +411,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 9028998063799770257}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
+  m_Script: {fileID: 11500000, guid: 25a85458429442d7b87a7a339f36cf56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 7527944458608772201}
