@@ -16,12 +16,16 @@ namespace Runtime.UI.Menu
 {
     public sealed class MenuPresenter : UIPresenter<MenuView>
     {
+        private const float FadeInTime = 0.35f;
+
         private readonly IGameStateMachine _stateMachine;
         private readonly ILevelRepository _levelRepository;
         private readonly ILevelIconProvider _iconProvider;
         private readonly ISelectedLevelStore _selectedLevelStore;
 
         private bool _transitionRequested;
+
+        protected override bool ShowViewOnInitialize => false;
 
         public MenuPresenter(
             MenuView view,
@@ -49,6 +53,7 @@ namespace Runtime.UI.Menu
 
         protected override void OnInitialized()
         {
+            View.Hide();
             LoadLevelsAsync(View.LifetimeToken).Forget();
         }
 
@@ -84,6 +89,7 @@ namespace Runtime.UI.Menu
                 }
 
                 View.RenderCatalog(catalog, icons);
+                View.Show(FadeInTime);
             }
             catch (OperationCanceledException)
             {
@@ -91,11 +97,6 @@ namespace Runtime.UI.Menu
             catch (Exception exception)
             {
                 Debug.LogException(exception, View);
-            }
-            finally
-            {
-                if (View)
-                    View.SetInteractionEnabled(true);
             }
         }
 
