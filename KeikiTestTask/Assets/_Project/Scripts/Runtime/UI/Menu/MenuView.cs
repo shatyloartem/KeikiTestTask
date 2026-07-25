@@ -1,37 +1,60 @@
 using System;
+using System.Collections.Generic;
+using Core.Levels;
 using Core.UI;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Runtime.UI.Menu
 {
     public sealed class MenuView : UIView
     {
-        [SerializeField] private Button _playButton;
+        [SerializeField] private RectTransform _levelsContent;
+        [SerializeField] private LevelCategoryView _categoryPrefab;
 
-        public event Action PlayRequested;
+        private readonly List<LevelCategoryView> _categories = new();
 
-        private void OnEnable()
+        public event Action<LevelDefinition> LevelSelected;
+
+        public void RenderCatalog(
+            LevelCatalog catalog,
+            IReadOnlyDictionary<string, Sprite> icons)
         {
-            if (_playButton)
-                _playButton.onClick.AddListener(NotifyPlayRequested);
+            if (catalog == null)
+                throw new ArgumentNullException(nameof(catalog));
+
+            Clear();
+
+            foreach (LevelCategory category in catalog.Categories)
+            {
+                LevelCategoryView categoryView = Instantiate(_categoryPrefab, _levelsContent);
+
+                categoryView.Bind(category, icons, NotifyLevelSelected);
+                _categories.Add(categoryView);
+            }
         }
 
-        private void OnDisable()
+        public override void SetInteractionEnabled(bool isEnabled)
         {
-            if (_playButton)
-                _playButton.onClick.RemoveListener(NotifyPlayRequested);
+            base.SetInteractionEnabled(isEnabled);
+
+            foreach (LevelCategoryView category in _categories)
+                category.SetInteractionEnabled(isEnabled);
         }
 
-        public void SetInteractionEnabled(bool isEnabled)
+        private void NotifyLevelSelected(LevelDefinition level)
         {
-            if (_playButton)
-                _playButton.interactable = isEnabled;
+            LevelSelected?.Invoke(level);
         }
 
-        private void NotifyPlayRequested()
+        private void Clear()
         {
-            PlayRequested?.Invoke();
+            foreach (LevelCategoryView category in _categories)
+            {
+                if (category)
+                    Destroy(category.gameObject);
+            }
+
+            _categories.Clear();
         }
     }
 }

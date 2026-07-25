@@ -13,7 +13,11 @@ namespace Runtime.Infrastructure.CompositionRoot
         public override void InstallBindings()
         {
             ValidateViews();
+
             BindViews();
+            
+            BindIconProvider();
+            
             BindPresenters();
         }
 
@@ -44,6 +48,13 @@ namespace Runtime.Infrastructure.CompositionRoot
             }
         }
 
+        private void BindIconProvider()
+        {
+            Container
+                .BindInterfacesAndSelfTo<AddressableLevelIconProvider>()
+                .AsSingle();   
+        }
+        
         private void BindPresenters()
         {
             Container

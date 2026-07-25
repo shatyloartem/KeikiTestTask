@@ -1,3 +1,4 @@
+using System.Threading;
 using UnityEngine;
 
 namespace Core.UI
@@ -7,6 +8,8 @@ namespace Core.UI
         [SerializeField] private CanvasGroup _content;
         
         public bool IsVisible => gameObject.activeSelf;
+
+        public CancellationToken LifetimeToken => destroyCancellationToken;
         
         public virtual void Show()
         {
@@ -20,6 +23,12 @@ namespace Core.UI
             _content.alpha = 0;
             _content.blocksRaycasts = false;
             _content.interactable = false;
+        }
+
+        public virtual void SetInteractionEnabled(bool isEnabled)
+        {
+            _content.blocksRaycasts = isEnabled;
+            _content.interactable = isEnabled;
         }
     }
 }

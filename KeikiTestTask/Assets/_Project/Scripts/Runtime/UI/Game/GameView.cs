@@ -23,8 +23,10 @@ namespace Runtime.UI.Game
                 _menuButton.onClick.RemoveListener(NotifyMenuRequested);
         }
 
-        public void SetInteractionEnabled(bool isEnabled)
+        public override void SetInteractionEnabled(bool isEnabled)
         {
+            base.SetInteractionEnabled(isEnabled);
+
             if (_menuButton)
                 _menuButton.interactable = isEnabled;
         }

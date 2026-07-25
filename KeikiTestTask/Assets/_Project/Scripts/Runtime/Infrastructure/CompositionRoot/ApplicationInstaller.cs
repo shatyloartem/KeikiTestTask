@@ -1,6 +1,9 @@
+using Core.Levels;
 using Core.Configuration;
 using Core.Infrastructure.SceneManagement;
 using Core.StateMachine;
+using Runtime.Infrastructure.Levels;
+using Runtime.Levels;
 using Runtime.States;
 using UnityEngine;
 using Zenject;
@@ -21,6 +24,8 @@ namespace Runtime.Infrastructure.CompositionRoot
             BindSceneLoader();
 
             BindStateMachine();
+
+            BindLevels();
         }
 
         private void BindStartupSettings()
@@ -49,6 +54,19 @@ namespace Runtime.Infrastructure.CompositionRoot
             Container
                 .Bind<IGameStateMachine>()
                 .To<GameStateMachine>()
+                .AsSingle();
+        }
+
+        private void BindLevels()
+        {
+            Container
+                .Bind<ILevelRepository>()
+                .FromInstance(new JsonLevelRepository())
+                .AsSingle();
+
+            Container
+                .Bind<ISelectedLevelService>()
+                .To<SelectedLevelService>()
                 .AsSingle();
         }
     }
