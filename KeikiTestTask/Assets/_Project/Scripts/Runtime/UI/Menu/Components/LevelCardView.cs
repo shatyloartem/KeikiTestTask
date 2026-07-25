@@ -48,11 +48,6 @@ namespace Runtime.UI.Menu.Components
             _icon.color = color;
         }
 
-        public void SetInteractionEnabled(bool isEnabled)
-        {
-            _button.interactable = isEnabled;
-        }
-
         private void HandleClick()
         {
             if (_level != null)

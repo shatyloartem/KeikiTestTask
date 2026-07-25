@@ -47,12 +47,6 @@ namespace Runtime.UI.Menu.Components
             _scrollRect.horizontalNormalizedPosition = 0f;
         }
         
-        public void SetInteractionEnabled(bool isEnabled)
-        {
-            foreach (LevelCardView card in _cards)
-                card.SetInteractionEnabled(isEnabled);
-        }
-
         private void Clear()
         {
             foreach (LevelCardView card in _cards)

@@ -9,7 +9,7 @@ namespace Runtime.UI.Menu
 {
     public sealed class MenuView : UIView
     {
-        [SerializeField] private RectTransform _levelsContent;
+        [SerializeField] private CanvasGroup _levelsContent;
         [SerializeField] private LevelCategoryView _categoryPrefab;
 
         private readonly List<LevelCategoryView> _categories = new();
@@ -27,7 +27,7 @@ namespace Runtime.UI.Menu
 
             foreach (LevelCategory category in catalog.Categories)
             {
-                LevelCategoryView categoryView = Instantiate(_categoryPrefab, _levelsContent);
+                LevelCategoryView categoryView = Instantiate(_categoryPrefab, _levelsContent.transform);
 
                 categoryView.Bind(category, icons, NotifyLevelSelected);
                 _categories.Add(categoryView);
@@ -38,8 +38,8 @@ namespace Runtime.UI.Menu
         {
             base.SetInteractionEnabled(isEnabled);
 
-            foreach (LevelCategoryView category in _categories)
-                category.SetInteractionEnabled(isEnabled);
+            _levelsContent.interactable = isEnabled;
+            _levelsContent.blocksRaycasts = isEnabled;
         }
 
         private void NotifyLevelSelected(LevelDefinition level)
