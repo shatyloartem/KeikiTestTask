@@ -60,7 +60,7 @@ namespace Runtime.CompositionRoot
         {
             Container
                 .Bind<ILevelRepository>()
-                .FromInstance(new JsonLevelRepository())
+                .To<JsonLevelRepository>()
                 .AsSingle();
 
             Container
