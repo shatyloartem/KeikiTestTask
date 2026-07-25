@@ -22,13 +22,13 @@ namespace Runtime.Infrastructure.Storage.Levels
 
         private static readonly string[] Colors =
         {
-            "#F51717",
-            "#FFA000",
-            "#FFEA2B",
-            "#76CA09",
-            "#4B7CE8",
-            "#5136AD",
-            "#7531A8"
+            "#E81615",
+            "#FFA500",
+            "#FAEA36",
+            "#79C315",
+            "#497DE7",
+            "#4B359D",
+            "#70359D"
         };
 
         public static LevelCatalog Create()
