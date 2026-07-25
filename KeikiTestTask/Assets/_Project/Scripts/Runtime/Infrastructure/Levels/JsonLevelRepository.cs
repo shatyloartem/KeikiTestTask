@@ -12,19 +12,40 @@ namespace Runtime.Infrastructure.Levels
         private const string FileName = "levels.json";
 
         private readonly string _filePath = Path.Combine(Application.persistentDataPath, FileName);
+        private readonly SemaphoreSlim _loadSemaphore = new(1, 1);
+
+        private LevelCatalog _cachedCatalog;
 
         public async UniTask<LevelCatalog> LoadAsync(CancellationToken ct = default)
         {
             ct.ThrowIfCancellationRequested();
 
-            string json = await UniTask.RunOnThreadPool(EnsureFileAndRead, cancellationToken: ct);
+            LevelCatalog cachedCatalog = Volatile.Read(ref _cachedCatalog);
+            if (cachedCatalog != null)
+                return cachedCatalog;
 
-            ct.ThrowIfCancellationRequested();
+            await _loadSemaphore.WaitAsync(ct);
 
-            LevelCatalog catalog = JsonUtility.FromJson<LevelCatalog>(json);
-            catalog.Validate();
-            
-            return catalog;
+            try
+            {
+                cachedCatalog = Volatile.Read(ref _cachedCatalog);
+                if (cachedCatalog != null)
+                    return cachedCatalog;
+
+                string json = await UniTask.RunOnThreadPool(EnsureFileAndRead, cancellationToken: ct);
+
+                ct.ThrowIfCancellationRequested();
+
+                LevelCatalog catalog = JsonUtility.FromJson<LevelCatalog>(json);
+                catalog.Validate();
+
+                Volatile.Write(ref _cachedCatalog, catalog);
+                return catalog;
+            }
+            finally
+            {
+                _loadSemaphore.Release();
+            }
         }
 
         private string EnsureFileAndRead()
