@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Core.Levels;
 using Core.UI;
+using Runtime.Domain.Levels;
+using Runtime.UI.Menu.Components;
 using UnityEngine;
 
 namespace Runtime.UI.Menu

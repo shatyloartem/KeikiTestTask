@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Core.Levels;
 using Core.StateMachine;
 using Core.UI;
 using Cysharp.Threading.Tasks;
+using Runtime.Domain.Levels;
+using Runtime.Infrastructure.AssetManagement;
+using Runtime.Infrastructure.Storage.Levels;
+using Runtime.Services.Levels;
 using Runtime.States;
 using UnityEngine;
 
@@ -16,7 +19,7 @@ namespace Runtime.UI.Menu
         private readonly IGameStateMachine _stateMachine;
         private readonly ILevelRepository _levelRepository;
         private readonly ILevelIconProvider _iconProvider;
-        private readonly ISelectedLevelService _selectedLevelService;
+        private readonly ISelectedLevelStore _selectedLevelStore;
 
         private bool _transitionRequested;
 
@@ -25,13 +28,13 @@ namespace Runtime.UI.Menu
             IGameStateMachine stateMachine,
             ILevelRepository levelRepository,
             ILevelIconProvider iconProvider,
-            ISelectedLevelService selectedLevelService)
+            ISelectedLevelStore selectedLevelStore)
             : base(view)
         {
             _stateMachine = stateMachine;
             _levelRepository = levelRepository;
             _iconProvider = iconProvider;
-            _selectedLevelService = selectedLevelService;
+            _selectedLevelStore = selectedLevelStore;
         }
 
         protected override void SubscribeToEvents()
@@ -54,7 +57,7 @@ namespace Runtime.UI.Menu
             if (_transitionRequested || _stateMachine.IsTransitioning)
                 return;
 
-            _selectedLevelService.Select(level);
+            _selectedLevelStore.Select(level);
             TransitionToGameAsync(View.LifetimeToken).Forget();
         }
 
