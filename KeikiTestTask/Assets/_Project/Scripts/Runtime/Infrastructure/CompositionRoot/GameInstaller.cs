@@ -5,7 +5,7 @@ using Runtime.States;
 using UnityEngine;
 using Zenject;
 
-namespace Core.CompositionRoot
+namespace Runtime.Infrastructure.CompositionRoot
 {
     public sealed class GameInstaller : MonoInstaller
     {

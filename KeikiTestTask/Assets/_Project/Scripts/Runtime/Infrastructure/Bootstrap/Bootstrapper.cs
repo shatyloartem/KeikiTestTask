@@ -7,7 +7,7 @@ using Runtime.States;
 using UnityEngine;
 using Zenject;
 
-namespace Core.Infrastructure.Bootstrap
+namespace Runtime.Infrastructure.Bootstrap
 {
     public sealed class Bootstrapper : MonoBehaviour
     {
