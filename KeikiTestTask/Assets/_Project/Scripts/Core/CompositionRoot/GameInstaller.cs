@@ -1,5 +1,7 @@
 using Core.Configuration;
 using Core.Infrastructure.SceneManagement;
+using Core.StateMachine;
+using Runtime.States;
 using UnityEngine;
 using Zenject;
 
@@ -17,6 +19,8 @@ namespace Core.CompositionRoot
             BindStartupSettings();
             
             BindSceneLoader();
+
+            BindStateMachine();
         }
 
         private void BindStartupSettings()
@@ -31,6 +35,20 @@ namespace Core.CompositionRoot
             Container
                 .Bind<ISceneLoader>()
                 .To<SceneLoader>()
+                .AsSingle();
+        }
+
+        private void BindStateMachine()
+        {
+            Container.Bind<MenuState>().AsSingle();
+            Container.Bind<GameState>().AsSingle();
+
+            Container.Bind<IState>().To<MenuState>().FromResolve().WhenInjectedInto<GameStateMachine>();
+            Container.Bind<IState>().To<GameState>().FromResolve().WhenInjectedInto<GameStateMachine>();
+            
+            Container
+                .Bind<IGameStateMachine>()
+                .To<GameStateMachine>()
                 .AsSingle();
         }
     }

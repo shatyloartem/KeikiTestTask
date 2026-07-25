@@ -1,8 +1,9 @@
 using System;
 using System.Threading;
 using Core.Configuration;
-using Core.Infrastructure.SceneManagement;
+using Core.StateMachine;
 using Cysharp.Threading.Tasks;
+using Runtime.States;
 using UnityEngine;
 using Zenject;
 
@@ -11,19 +12,17 @@ namespace Core.Infrastructure.Bootstrap
     public sealed class Bootstrapper : MonoBehaviour
     {
         private GameStartupSettings _startupSettings;
-        private ISceneLoader _sceneLoader;
+        private IGameStateMachine _stateMachine;
 
         private CancellationTokenSource _cts;
         
         private bool _started;
 
         [Inject]
-        private void Construct(
-            GameStartupSettings startupSettings,
-            ISceneLoader sceneLoader)
+        private void Construct(GameStartupSettings startupSettings, IGameStateMachine stateMachine)
         {
             _startupSettings = startupSettings;
-            _sceneLoader = sceneLoader;
+            _stateMachine = stateMachine;
         }
 
         private void Start()
@@ -48,14 +47,13 @@ namespace Core.Infrastructure.Bootstrap
             EnsureInjected();
 
             ApplyApplicationSettings();
-
-            await _sceneLoader.LoadAsync(SceneNames.MenuScene, cancellationToken: ct);
+            
+            await _stateMachine.EnterAsync<MenuState>(ct);
         }
 
         private void EnsureInjected()
         {
-            if (_startupSettings == null ||
-                _sceneLoader == null)
+            if (_startupSettings == null || _stateMachine == null)
             {
                 throw new InvalidOperationException(
                     $"{nameof(Bootstrapper)} was not injected. " +
