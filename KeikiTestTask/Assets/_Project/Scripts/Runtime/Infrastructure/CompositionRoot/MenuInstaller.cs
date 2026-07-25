@@ -1,12 +1,12 @@
 using System;
 using Core.UI;
-using Runtime.UI.Game;
+using Runtime.UI.Menu;
 using UnityEngine;
 using Zenject;
 
 namespace Runtime.Infrastructure.CompositionRoot
 {
-    public sealed class GameInstaller : MonoInstaller
+    public sealed class MenuInstaller : MonoInstaller
     {
         [SerializeField] private UIView[] _views;
 
@@ -22,7 +22,7 @@ namespace Runtime.Infrastructure.CompositionRoot
             if (_views == null || _views.Length == 0)
             {
                 throw new InvalidOperationException(
-                    $"At least one view must be assigned in {nameof(GameInstaller)}.");
+                    $"At least one view must be assigned in {nameof(MenuInstaller)}.");
             }
 
             for (int i = 0; i < _views.Length; i++)
@@ -30,11 +30,11 @@ namespace Runtime.Infrastructure.CompositionRoot
                 if (!_views[i])
                 {
                     throw new InvalidOperationException(
-                        $"View at index {i} is not assigned in {nameof(GameInstaller)}.");
+                        $"View at index {i} is not assigned in {nameof(MenuInstaller)}.");
                 }
             }
         }
-
+        
         private void BindViews()
         {
             foreach (UIView view in _views)
@@ -43,11 +43,11 @@ namespace Runtime.Infrastructure.CompositionRoot
                 Container.Bind(view.GetType()).FromInstance(view);
             }
         }
-        
+
         private void BindPresenters()
         {
             Container
-                .BindInterfacesAndSelfTo<GamePresenter>()
+                .BindInterfacesAndSelfTo<MenuPresenter>()
                 .AsSingle()
                 .NonLazy();
         }
