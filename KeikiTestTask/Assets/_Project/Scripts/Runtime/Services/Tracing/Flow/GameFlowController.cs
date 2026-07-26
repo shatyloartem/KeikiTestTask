@@ -13,15 +13,15 @@ using UnityEngine;
 
 namespace Runtime.Services.Tracing.Flow
 {
-    public sealed class GameFlowController : IDisposable
+    public sealed class GameFlowController : IGameFlow, IDisposable
     {
         private readonly ILevelRepository _levelRepository;
         private readonly ISelectedLevelStore _selectedLevelStore;
         private readonly ILevelSequenceService _levelSequenceService;
-        private readonly TraceAssetLoader _assetLoader;
-        private readonly GameAudioPlayer _audioPlayer;
-        private readonly TraceStrokePlayer _strokePlayer;
-        private readonly TraceSurfaceView _surfaceView;
+        private readonly ITraceAssetLoader _assetLoader;
+        private readonly IGameAudioPlayer _audioPlayer;
+        private readonly ITraceStrokePlayer _strokePlayer;
+        private readonly ITraceLevelView _surfaceView;
 
         private CancellationTokenSource _runCts;
         private bool _isRunning;
@@ -33,10 +33,10 @@ namespace Runtime.Services.Tracing.Flow
             ILevelRepository levelRepository,
             ISelectedLevelStore selectedLevelStore,
             ILevelSequenceService levelSequenceService,
-            TraceAssetLoader assetLoader,
-            GameAudioPlayer audioPlayer,
-            TraceStrokePlayer strokePlayer,
-            TraceSurfaceView surfaceView)
+            ITraceAssetLoader assetLoader,
+            IGameAudioPlayer audioPlayer,
+            ITraceStrokePlayer strokePlayer,
+            ITraceLevelView surfaceView)
         {
             _levelRepository = levelRepository
                 ?? throw new ArgumentNullException(nameof(levelRepository));
@@ -51,8 +51,7 @@ namespace Runtime.Services.Tracing.Flow
             _strokePlayer = strokePlayer
                 ?? throw new ArgumentNullException(nameof(strokePlayer));
             _surfaceView = surfaceView
-                ? surfaceView
-                : throw new ArgumentNullException(nameof(surfaceView));
+                ?? throw new ArgumentNullException(nameof(surfaceView));
         }
 
         public GameFlowState State { get; private set; } = GameFlowState.Idle;

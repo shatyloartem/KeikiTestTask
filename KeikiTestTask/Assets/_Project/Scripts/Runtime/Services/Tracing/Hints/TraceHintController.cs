@@ -11,11 +11,11 @@ using UnityEngine;
 
 namespace Runtime.Services.Tracing.Hints
 {
-    public sealed class TraceHintController : IDisposable
+    public sealed class TraceHintController : ITraceHintSession, IDisposable
     {
-        private readonly GameAudioPlayer _audioPlayer;
-        private readonly TraceSurfaceView _surfaceView;
-        private readonly TraceInputController _inputController;
+        private readonly IGameAudioPlayer _audioPlayer;
+        private readonly ITraceHintView _surfaceView;
+        private readonly ITraceInputSession _inputController;
 
         private float _lastActivityTime;
         private int _activityVersion;
@@ -23,15 +23,14 @@ namespace Runtime.Services.Tracing.Hints
         private bool _isDisposed;
 
         public TraceHintController(
-            GameAudioPlayer audioPlayer,
-            TraceSurfaceView surfaceView,
-            TraceInputController inputController)
+            IGameAudioPlayer audioPlayer,
+            ITraceHintView surfaceView,
+            ITraceInputSession inputController)
         {
             _audioPlayer = audioPlayer
                 ?? throw new ArgumentNullException(nameof(audioPlayer));
             _surfaceView = surfaceView
-                ? surfaceView
-                : throw new ArgumentNullException(nameof(surfaceView));
+                ?? throw new ArgumentNullException(nameof(surfaceView));
             _inputController = inputController
                 ?? throw new ArgumentNullException(nameof(inputController));
 

@@ -9,10 +9,10 @@ using UnityEngine;
 
 namespace Runtime.Services.Tracing
 {
-    public sealed class TraceInputController : IDisposable
+    public sealed class TraceInputController : ITraceInputSession, IDisposable
     {
-        private readonly TraceSurfaceView _surfaceView;
-        private readonly TraceInputView _inputView;
+        private readonly ITraceInputSurface _surfaceView;
+        private readonly ITraceInputSource _inputView;
 
         private UniTaskCompletionSource _completion;
         private StrokeProgressTracker _progressTracker;
@@ -24,14 +24,12 @@ namespace Runtime.Services.Tracing
 
         public event Action UserActivity;
         
-        public TraceInputController(TraceSurfaceView surfaceView, TraceInputView inputView)
+        public TraceInputController(ITraceInputSurface surfaceView, ITraceInputSource inputView)
         {
             _surfaceView = surfaceView
-                ? surfaceView
-                : throw new ArgumentNullException(nameof(surfaceView));
+                ?? throw new ArgumentNullException(nameof(surfaceView));
             _inputView = inputView
-                ? inputView
-                : throw new ArgumentNullException(nameof(inputView));
+                ?? throw new ArgumentNullException(nameof(inputView));
 
             _inputView.PointerPressed += HandlePointerPressed;
             _inputView.PointerDragged += HandlePointerDragged;

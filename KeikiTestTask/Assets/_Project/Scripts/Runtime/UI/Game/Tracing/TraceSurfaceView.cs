@@ -12,7 +12,12 @@ using UnityEngine.UI;
 namespace Runtime.UI.Game.Tracing
 {
     [RequireComponent(typeof(RectTransform))]
-    public sealed class TraceSurfaceView : MonoBehaviour
+    public sealed class TraceSurfaceView :
+        MonoBehaviour,
+        ITraceLevelView,
+        ITraceStrokeView,
+        ITraceInputSurface,
+        ITraceHintView
     {
         private const float SilhouetteAlpha = 0.32f;
         private const float RoutePointSizeNormalized = 0.035f;

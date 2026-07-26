@@ -14,7 +14,7 @@ namespace Runtime.UI.Game
         private const float FadeInTime = 0.35f;
 
         private readonly IGameStateMachine _stateMachine;
-        private readonly GameFlowController _gameFlowController;
+        private readonly IGameFlow _gameFlowController;
 
         private CancellationTokenSource _flowCts;
         private bool _transitionRequested;
@@ -22,7 +22,7 @@ namespace Runtime.UI.Game
         public GamePresenter(
             GameView view,
             IGameStateMachine stateMachine,
-            GameFlowController gameFlowController)
+            IGameFlow gameFlowController)
             : base(view)
         {
             _stateMachine = stateMachine;

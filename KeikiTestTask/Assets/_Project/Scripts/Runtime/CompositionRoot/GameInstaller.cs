@@ -72,36 +72,38 @@ namespace Runtime.CompositionRoot
 
         private void BindGameplay()
         {
-            Container.BindInstance(_traceSurfaceView);
-            Container.BindInstance(_traceInputView);
             Container.BindInstance(_audioSource);
+            Container.BindInterfacesTo<TraceSurfaceView>().FromInstance(_traceSurfaceView);
+            Container.Bind<ITraceInputSource>().FromInstance(_traceInputView);
 
             Container
-                .BindInterfacesAndSelfTo<AddressableGameAssetProvider>()
+                .BindInterfacesTo<AddressableGameAssetProvider>()
                 .AsSingle();
 
             Container
-                .BindInterfacesAndSelfTo<GameAudioPlayer>()
+                .BindInterfacesTo<GameAudioPlayer>()
                 .AsSingle();
 
             Container
-                .Bind<TraceAssetLoader>()
+                .Bind<ITraceAssetLoader>()
+                .To<TraceAssetLoader>()
                 .AsSingle();
 
             Container
-                .BindInterfacesAndSelfTo<TraceInputController>()
+                .BindInterfacesTo<TraceInputController>()
                 .AsSingle();
 
             Container
-                .BindInterfacesAndSelfTo<TraceHintController>()
+                .BindInterfacesTo<TraceHintController>()
                 .AsSingle();
 
             Container
-                .Bind<TraceStrokePlayer>()
+                .Bind<ITraceStrokePlayer>()
+                .To<TraceStrokePlayer>()
                 .AsSingle();
 
             Container
-                .BindInterfacesAndSelfTo<GameFlowController>()
+                .BindInterfacesTo<GameFlowController>()
                 .AsSingle();
         }
         

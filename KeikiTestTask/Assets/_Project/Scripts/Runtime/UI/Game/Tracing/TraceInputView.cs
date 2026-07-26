@@ -4,7 +4,12 @@ using UnityEngine.EventSystems;
 
 namespace Runtime.UI.Game.Tracing
 {
-    public sealed class TraceInputView : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+    public sealed class TraceInputView :
+        MonoBehaviour,
+        ITraceInputSource,
+        IPointerDownHandler,
+        IDragHandler,
+        IPointerUpHandler
     {
         private int? _activePointerId;
 

@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Runtime.Services.Tracing.Assets
 {
-    public sealed class TraceAssetLoader
+    public sealed class TraceAssetLoader : ITraceAssetLoader
     {
         private readonly IGameAssetProvider _assetProvider;
 

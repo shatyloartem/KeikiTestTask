@@ -5,25 +5,24 @@ using Runtime.Domain.Levels;
 using Runtime.Domain.Tracing;
 using Runtime.Services.Tracing.Assets;
 using Runtime.Services.Tracing.Hints;
-using Runtime.UI.Game;
+using Runtime.Services.Tracing.Input;
 using Runtime.UI.Game.Tracing;
 
 namespace Runtime.Services.Tracing.Flow
 {
-    public sealed class TraceStrokePlayer
+    public sealed class TraceStrokePlayer : ITraceStrokePlayer
     {
-        private readonly TraceSurfaceView _surfaceView;
-        private readonly TraceInputController _inputController;
-        private readonly TraceHintController _hintController;
+        private readonly ITraceStrokeView _surfaceView;
+        private readonly ITraceInputSession _inputController;
+        private readonly ITraceHintSession _hintController;
 
         public TraceStrokePlayer(
-            TraceSurfaceView surfaceView,
-            TraceInputController inputController,
-            TraceHintController hintController)
+            ITraceStrokeView surfaceView,
+            ITraceInputSession inputController,
+            ITraceHintSession hintController)
         {
             _surfaceView = surfaceView
-                ? surfaceView
-                : throw new ArgumentNullException(nameof(surfaceView));
+                ?? throw new ArgumentNullException(nameof(surfaceView));
             _inputController = inputController
                 ?? throw new ArgumentNullException(nameof(inputController));
             _hintController = hintController

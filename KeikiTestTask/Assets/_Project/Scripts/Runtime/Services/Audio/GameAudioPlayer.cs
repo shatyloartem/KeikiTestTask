@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Runtime.Services.Audio
 {
-    public sealed class GameAudioPlayer : IDisposable
+    public sealed class GameAudioPlayer : IGameAudioPlayer, IDisposable
     {
         private readonly AudioSource _audioSource;
 
