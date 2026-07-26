@@ -11,6 +11,8 @@ namespace Runtime.UI.Game
 {
     public sealed class GamePresenter : UIPresenter<GameView>
     {
+        private const float FadeInTime = 0.35f;
+
         private readonly IGameStateMachine _stateMachine;
         private readonly GameFlowController _gameFlowController;
 
@@ -27,18 +29,23 @@ namespace Runtime.UI.Game
             _gameFlowController = gameFlowController;
         }
 
+        protected override bool ShowViewOnInitialize => false;
+
         protected override void SubscribeToEvents()
         {
             View.MenuRequested += HandleMenuRequested;
+            _gameFlowController.LevelReady += HandleLevelReady;
         }
 
         protected override void UnsubscribeFromEvents()
         {
             View.MenuRequested -= HandleMenuRequested;
+            _gameFlowController.LevelReady -= HandleLevelReady;
         }
 
         protected override void OnInitialized()
         {
+            View.Hide();
             _flowCts = CancellationTokenSource.CreateLinkedTokenSource(View.LifetimeToken);
             RunGameAsync(_flowCts.Token).Forget();
         }
@@ -59,6 +66,12 @@ namespace Runtime.UI.Game
             _flowCts?.Cancel();
             _gameFlowController.Stop();
             TransitionToMenuAsync().Forget();
+        }
+
+        private void HandleLevelReady()
+        {
+            if (!View.IsVisible)
+                View.Show(FadeInTime);
         }
 
         private async UniTask RunGameAsync(CancellationToken cancellationToken)

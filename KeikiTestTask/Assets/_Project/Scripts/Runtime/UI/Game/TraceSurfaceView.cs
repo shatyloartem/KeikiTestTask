@@ -49,8 +49,8 @@ namespace Runtime.UI.Game
 
         public Vector2 ScreenToNormalized(Vector2 screenPosition)
         {
-            Camera eventCamera = _canvas &&
-                                 _canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            Camera eventCamera = 
+                _canvas && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
                 ? _canvas.worldCamera
                 : null;
 
@@ -101,8 +101,7 @@ namespace Runtime.UI.Game
             float duration,
             CancellationToken cancellationToken)
         {
-            _activeStroke = stroke
-                ?? throw new ArgumentNullException(nameof(stroke));
+            _activeStroke = stroke ?? throw new ArgumentNullException(nameof(stroke));
             _activeGeometry = geometry
                 ? geometry
                 : throw new ArgumentNullException(nameof(geometry));
@@ -165,9 +164,7 @@ namespace Runtime.UI.Game
                         Mathf.Clamp01(phase - i - 1f));
                 }
 
-                _star.color = WithAlpha(
-                    _star.color,
-                    Mathf.Clamp01(phase - revealElementCount + 1f));
+                _star.color = WithAlpha(_star.color, Mathf.Clamp01(phase - revealElementCount + 1f));
 
                 if (normalizedTime >= 1f)
                     break;
@@ -184,25 +181,21 @@ namespace Runtime.UI.Game
 
         public void SetProgress(TraceSampleResult result)
         {
-            if (_activeTrail == null)
+            if (!_activeTrail)
                 return;
 
             _activeTrail.SetProgress(result.ProgressDistance);
             SetGraphicPosition(_mascot, result.Position, MascotSizeNormalized);
 
-            float hiddenBefore = result.ProgressDistance -
-                                 _activeGeometry.RoutePointSpacingNormalized * 0.4f;
+            float hiddenBefore = result.ProgressDistance - _activeGeometry.RoutePointSpacingNormalized * 0.4f;
 
-            for (int i = 0; i < _routePoints.Count; i++)
-            {
-                _routePoints[i].enabled =
-                    _routePointDistances[i] > hiddenBefore;
-            }
+            for (int i = 0; i < _routePoints.Count; i++) 
+                _routePoints[i].enabled = _routePointDistances[i] > hiddenBefore;
         }
 
         public void CompleteActiveStroke()
         {
-            if (_activeTrail != null && _activeStroke != null)
+            if (_activeTrail && _activeStroke != null)
                 _activeTrail.SetProgress(_activeStroke.TotalLength);
 
             ClearRoute();
@@ -213,7 +206,7 @@ namespace Runtime.UI.Game
 
         public void ShowHelperAt(Vector2 normalizedPosition)
         {
-            SetGraphicPosition(_helper, normalizedPosition, HelperSizeNormalized);
+            SetImagePositionUsingSpritePivot(_helper, normalizedPosition, HelperSizeNormalized);
             _helper.enabled = true;
         }
 
@@ -272,21 +265,15 @@ namespace Runtime.UI.Game
             _helper.enabled = false;
         }
 
-        private TraceTrailGraphic CreateTrail(
-            TraceStrokeDefinition stroke,
-            float widthNormalized,
-            Color traceColor)
+        private TraceTrailGraphic CreateTrail(TraceStrokeDefinition stroke, float widthNormalized, Color traceColor)
         {
-            GameObject gameObject = new(
-                $"Trail - {stroke.Id}",
-                typeof(RectTransform),
-                typeof(CanvasRenderer),
-                typeof(TraceTrailGraphic));
-            RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
+            GameObject obj = new($"Trail - {stroke.Id}", typeof(CanvasRenderer));
+            
+            RectTransform rectTransform = obj.AddComponent<RectTransform>();
             rectTransform.SetParent(_trailLayer, false);
             Stretch(rectTransform);
 
-            TraceTrailGraphic trail = gameObject.GetComponent<TraceTrailGraphic>();
+            TraceTrailGraphic trail = obj.AddComponent<TraceTrailGraphic>();
             trail.Configure(stroke, widthNormalized, traceColor);
             _trails.Add(trail);
 
@@ -337,12 +324,10 @@ namespace Runtime.UI.Game
                 _helper.enabled = false;
         }
 
-        private RectTransform CreateLayer(
-            string objectName,
-            Transform parent = null)
+        private RectTransform CreateLayer(string objectName, Transform parent = null)
         {
-            GameObject gameObject = new(objectName, typeof(RectTransform));
-            RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
+            GameObject obj = new(objectName, typeof(RectTransform));
+            RectTransform rectTransform = obj.GetComponent<RectTransform>();
             rectTransform.SetParent(parent ? parent : transform, false);
             Stretch(rectTransform);
             return rectTransform;
@@ -355,6 +340,7 @@ namespace Runtime.UI.Game
                 typeof(RectTransform),
                 typeof(CanvasRenderer),
                 typeof(Image));
+            
             RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
             rectTransform.SetParent(parent, false);
 
@@ -364,30 +350,25 @@ namespace Runtime.UI.Game
             return image;
         }
 
-        private static TraceRoutePointGraphic CreateRoutePoint(
-            string objectName,
-            Transform parent)
+        private static TraceRoutePointGraphic CreateRoutePoint(string objectName, Transform parent)
         {
             GameObject gameObject = new(
                 objectName,
                 typeof(RectTransform),
                 typeof(CanvasRenderer),
                 typeof(TraceRoutePointGraphic));
+
             RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
             rectTransform.SetParent(parent, false);
 
-            TraceRoutePointGraphic point =
-                gameObject.GetComponent<TraceRoutePointGraphic>();
+            TraceRoutePointGraphic point = gameObject.GetComponent<TraceRoutePointGraphic>();
             point.raycastTarget = false;
             point.color = Color.white;
 
             return point;
         }
 
-        private void SetGraphicPosition(
-            Graphic graphic,
-            Vector2 normalizedPosition,
-            float sizeNormalized)
+        private void SetGraphicPosition(Graphic graphic, Vector2 normalizedPosition, float sizeNormalized)
         {
             Rect rect = _surfaceRect.rect;
             float size = Mathf.Min(rect.width, rect.height) * sizeNormalized;
@@ -399,6 +380,43 @@ namespace Runtime.UI.Game
             graphicRect.anchoredPosition = new Vector2(
                 Mathf.Lerp(rect.xMin, rect.xMax, normalizedPosition.x) - rect.xMin,
                 Mathf.Lerp(rect.yMin, rect.yMax, normalizedPosition.y) - rect.yMin);
+        }
+
+        private void SetImagePositionUsingSpritePivot(Image image, Vector2 normalizedPosition, float sizeNormalized)
+        {
+            Sprite sprite = image.sprite;
+
+            if (!sprite)
+            {
+                SetGraphicPosition(image, normalizedPosition, sizeNormalized);
+                return;
+            }
+
+            Rect surfaceRect = _surfaceRect.rect;
+            Rect spriteRect = sprite.rect;
+            float size = Mathf.Min(surfaceRect.width, surfaceRect.height) *
+                         sizeNormalized;
+            float aspect = spriteRect.width / spriteRect.height;
+            Vector2 sizeDelta = aspect >= 1f
+                ? new Vector2(size, size / aspect)
+                : new Vector2(size * aspect, size);
+            RectTransform imageRect = image.rectTransform;
+
+            imageRect.anchorMin = Vector2.zero;
+            imageRect.anchorMax = Vector2.zero;
+            imageRect.pivot = new Vector2(
+                sprite.pivot.x / spriteRect.width,
+                sprite.pivot.y / spriteRect.height);
+            imageRect.sizeDelta = sizeDelta;
+            imageRect.anchoredPosition = new Vector2(
+                Mathf.Lerp(
+                    surfaceRect.xMin,
+                    surfaceRect.xMax,
+                    normalizedPosition.x) - surfaceRect.xMin,
+                Mathf.Lerp(
+                    surfaceRect.yMin,
+                    surfaceRect.yMax,
+                    normalizedPosition.y) - surfaceRect.yMin);
         }
 
         private static void Stretch(RectTransform rectTransform)

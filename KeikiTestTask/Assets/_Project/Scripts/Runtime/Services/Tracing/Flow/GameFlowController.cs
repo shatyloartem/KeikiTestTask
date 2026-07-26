@@ -26,6 +26,8 @@ namespace Runtime.Services.Tracing.Flow
         private bool _isRunning;
         private bool _isDisposed;
 
+        public event Action LevelReady;
+
         public GameFlowController(
             ILevelRepository levelRepository,
             ISelectedLevelStore selectedLevelStore,
@@ -153,6 +155,7 @@ namespace Runtime.Services.Tracing.Flow
                 gameplayAssets.Star,
                 gameplayAssets.Mascot,
                 gameplayAssets.Helper);
+            LevelReady?.Invoke();
 
             State = GameFlowState.PlayingInstruction;
             await _audioPlayer.PlayAsync(levelAssets.Instruction, cancellationToken);

@@ -47,17 +47,26 @@ namespace Runtime.Services.Tracing.Flow
 
             changeState(GameFlowState.RevealingStroke);
 
-            await _surfaceView.RevealStrokeAsync(
+            using CancellationTokenSource revealCts =
+                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using CancellationTokenSource hintCts =
+                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            UniTask revealTask = _surfaceView.RevealStrokeAsync(
                 stroke,
                 levelAssets.Geometry,
                 levelAssets.TraceColor,
                 gameplay.RouteRevealDuration,
+                revealCts.Token);
+            UniTask inputTask = _inputController.TraceAsync(
+                levelAssets.Geometry,
+                stroke,
                 cancellationToken);
-
-            using CancellationTokenSource hintCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-            UniTask inputTask = _inputController.TraceAsync(levelAssets.Geometry, stroke, cancellationToken);
-            UniTask hintTask = _hintController.RunAsync(gameplay, levelAssets.Instruction, stroke, hintCts.Token);
+            UniTask hintTask = _hintController.RunAsync(
+                gameplay,
+                levelAssets.Instruction,
+                stroke,
+                hintCts.Token);
 
             changeState(GameFlowState.AwaitingInput);
 
@@ -67,11 +76,12 @@ namespace Runtime.Services.Tracing.Flow
             }
             finally
             {
+                revealCts.Cancel();
                 hintCts.Cancel();
 
                 try
                 {
-                    await hintTask;
+                    await UniTask.WhenAll(revealTask, hintTask);
                 }
                 catch (OperationCanceledException)
                 {
