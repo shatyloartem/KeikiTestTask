@@ -5,6 +5,7 @@ using Runtime.Domain.Levels;
 using Runtime.Domain.Tracing;
 using Runtime.Services.Audio;
 using Runtime.Services.Tracing.Input;
+using Runtime.Services.Tracing.Path;
 using Runtime.UI.Game;
 using Runtime.UI.Game.Tracing;
 using UnityEngine;

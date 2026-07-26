@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Runtime.Domain.Tracing;
+using Runtime.Services.Tracing.Path;
 using UnityEngine;
 
 namespace Runtime.Services.Tracing.Input

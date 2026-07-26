@@ -20,7 +20,7 @@ namespace Runtime.UI.Menu
 
         private readonly IGameStateMachine _stateMachine;
         private readonly ILevelRepository _levelRepository;
-        private readonly ILevelIconProvider _iconProvider;
+        private readonly IGameAssetProvider _assetProvider;
         private readonly ISelectedLevelStore _selectedLevelStore;
 
         private bool _transitionRequested;
@@ -31,13 +31,13 @@ namespace Runtime.UI.Menu
             MenuView view,
             IGameStateMachine stateMachine,
             ILevelRepository levelRepository,
-            ILevelIconProvider iconProvider,
+            IGameAssetProvider assetProvider,
             ISelectedLevelStore selectedLevelStore)
             : base(view)
         {
             _stateMachine = stateMachine;
             _levelRepository = levelRepository;
-            _iconProvider = iconProvider;
+            _assetProvider = assetProvider;
             _selectedLevelStore = selectedLevelStore;
         }
 
@@ -76,17 +76,20 @@ namespace Runtime.UI.Menu
 
                 string[] addresses = catalog.Categories
                     .SelectMany(category => category.Levels)
-                    .Select(level => level.IconAddress)
+                    .Select(level => level.SpriteAddress)
                     .Distinct()
                     .ToArray();
 
+                UniTask<Sprite>[] loadTasks = addresses
+                    .Select(address => _assetProvider.LoadAsync<Sprite>(
+                        address,
+                        cancellationToken))
+                    .ToArray();
+                Sprite[] loadedIcons = await UniTask.WhenAll(loadTasks);
                 Dictionary<string, Sprite> icons = new(addresses.Length);
 
-                foreach (string address in addresses)
-                {
-                    Sprite icon = await _iconProvider.LoadAsync(address, cancellationToken);
-                    icons.Add(address, icon);
-                }
+                for (int i = 0; i < addresses.Length; i++)
+                    icons.Add(addresses[i], loadedIcons[i]);
 
                 View.RenderCatalog(catalog, icons);
                 View.Show(FadeInTime);

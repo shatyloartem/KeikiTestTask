@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Runtime.Services.Tracing
+namespace Runtime.Services.Tracing.Path
 {
     public static class TracePathUtility
     {

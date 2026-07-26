@@ -59,7 +59,6 @@ namespace Runtime.Infrastructure.Storage.Levels
                     "audio/instruction/letter",
                     "A",
                     LetterShapeAddress,
-                    LetterShapeAddress,
                     LetterGeometryAddress),
                 CreateCategory(
                     "numbers",
@@ -67,14 +66,12 @@ namespace Runtime.Infrastructure.Storage.Levels
                     "audio/instruction/number",
                     "1",
                     NumberShapeAddress,
-                    NumberShapeAddress,
                     NumberGeometryAddress),
                 CreateCategory(
                     "shapes",
                     "Trace shapes",
                     "audio/instruction/number",
                     "O",
-                    CircleShapeAddress,
                     CircleShapeAddress,
                     ShapeGeometryAddress)
             };
@@ -87,8 +84,7 @@ namespace Runtime.Infrastructure.Storage.Levels
             string title,
             string instructionAudioAddress,
             string symbol,
-            string iconAddress,
-            string silhouetteAddress,
+            string spriteAddress,
             string geometryAddress)
         {
             List<LevelDefinition> levels = new(Colors.Length);
@@ -99,8 +95,7 @@ namespace Runtime.Infrastructure.Storage.Levels
                     $"{categoryId}-{ColorNames[i]}",
                     symbol,
                     Colors[i],
-                    iconAddress,
-                    silhouetteAddress,
+                    spriteAddress,
                     geometryAddress));
             }
 

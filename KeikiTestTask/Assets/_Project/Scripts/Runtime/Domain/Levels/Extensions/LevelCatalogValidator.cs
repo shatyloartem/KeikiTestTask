@@ -42,8 +42,7 @@ namespace Runtime.Domain.Levels.Extensions
                     if (level == null ||
                         string.IsNullOrWhiteSpace(level.Id) ||
                         string.IsNullOrWhiteSpace(level.ColorHex) ||
-                        string.IsNullOrWhiteSpace(level.IconAddress) ||
-                        string.IsNullOrWhiteSpace(level.SilhouetteAddress) ||
+                        string.IsNullOrWhiteSpace(level.SpriteAddress) ||
                         string.IsNullOrWhiteSpace(level.TraceGeometryAddress))
                     {
                         throw new InvalidDataException(

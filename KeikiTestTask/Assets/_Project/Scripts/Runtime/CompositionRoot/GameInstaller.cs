@@ -1,11 +1,10 @@
 using System;
 using Core.UI;
-using Runtime.Infrastructure.AssetManagement;
 using Runtime.Services.Audio;
-using Runtime.Services.Tracing;
 using Runtime.Services.Tracing.Assets;
 using Runtime.Services.Tracing.Flow;
 using Runtime.Services.Tracing.Hints;
+using Runtime.Services.Tracing.Input;
 using Runtime.UI.Game;
 using Runtime.UI.Game.Tracing;
 using UnityEngine;
@@ -75,10 +74,6 @@ namespace Runtime.CompositionRoot
             Container.BindInstance(_audioSource);
             Container.BindInterfacesTo<TraceSurfaceView>().FromInstance(_traceSurfaceView);
             Container.Bind<ITraceInputSource>().FromInstance(_traceInputView);
-
-            Container
-                .BindInterfacesTo<AddressableGameAssetProvider>()
-                .AsSingle();
 
             Container
                 .BindInterfacesTo<GameAudioPlayer>()

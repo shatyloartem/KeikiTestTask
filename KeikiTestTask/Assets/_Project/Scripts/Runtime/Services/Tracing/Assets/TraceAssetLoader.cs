@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Runtime.Domain.Levels;
@@ -27,49 +27,59 @@ namespace Runtime.Services.Tracing.Assets
             if (gameplay == null)
                 throw new ArgumentNullException(nameof(gameplay));
 
-            Sprite star = await _assetProvider.LoadAsync<Sprite>(
+            UniTask<Sprite> starTask = _assetProvider.LoadAsync<Sprite>(
                 gameplay.RouteStarAddress,
                 cancellationToken);
-            Sprite mascot = await _assetProvider.LoadAsync<Sprite>(
+            UniTask<Sprite> mascotTask = _assetProvider.LoadAsync<Sprite>(
                 gameplay.MascotAddress,
                 cancellationToken);
-            Sprite helper = await _assetProvider.LoadAsync<Sprite>(
+            UniTask<Sprite> helperTask = _assetProvider.LoadAsync<Sprite>(
                 gameplay.HelperFingerAddress,
                 cancellationToken);
+            UniTask<AudioClip[]> praiseTask = UniTask.WhenAll(
+                gameplay.PraiseAudioAddresses.Select(
+                    address => _assetProvider.LoadAsync<AudioClip>(
+                        address,
+                        cancellationToken)));
 
-            List<AudioClip> praiseClips = new(gameplay.PraiseAudioAddresses.Count);
+            (Sprite star, Sprite mascot, Sprite helper, AudioClip[] praiseClips) =
+                await UniTask.WhenAll(
+                    starTask,
+                    mascotTask,
+                    helperTask,
+                    praiseTask);
 
-            foreach (string address in gameplay.PraiseAudioAddresses)
-            {
-                AudioClip clip = await _assetProvider.LoadAsync<AudioClip>(address, cancellationToken);
-                praiseClips.Add(clip);
-            }
-
-            if (praiseClips.Count == 0)
+            if (praiseClips.Length == 0)
             {
                 throw new InvalidOperationException(
                     "Gameplay must define at least one praise audio clip.");
             }
 
             return new GameplayAssets(
-                star, 
-                mascot, 
-                helper, 
+                star,
+                mascot,
+                helper,
                 praiseClips);
         }
 
         public async UniTask<TraceLevelAssets> LoadLevelAsync(LevelContext context, CancellationToken cancellationToken)
         {
-            Sprite silhouette = await _assetProvider.LoadAsync<Sprite>(
-                context.Level.SilhouetteAddress,
+            UniTask<Sprite> spriteTask = _assetProvider.LoadAsync<Sprite>(
+                context.Level.SpriteAddress,
                 cancellationToken);
-            TraceGeometryAsset geometry =
-                await _assetProvider.LoadAsync<TraceGeometryAsset>(
-                    context.Level.TraceGeometryAddress,
-                    cancellationToken);
-            AudioClip instruction = await _assetProvider.LoadAsync<AudioClip>(
+            UniTask<TraceGeometryAsset> geometryTask =
+                _assetProvider.LoadAsync<TraceGeometryAsset>(
+                context.Level.TraceGeometryAddress,
+                cancellationToken);
+            UniTask<AudioClip> instructionTask = _assetProvider.LoadAsync<AudioClip>(
                 context.Category.InstructionAudioAddress,
                 cancellationToken);
+
+            (Sprite silhouette, TraceGeometryAsset geometry, AudioClip instruction) =
+                await UniTask.WhenAll(
+                    spriteTask,
+                    geometryTask,
+                    instructionTask);
 
             geometry.Validate();
 

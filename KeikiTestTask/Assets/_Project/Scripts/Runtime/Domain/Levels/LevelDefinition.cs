@@ -9,31 +9,27 @@ namespace Runtime.Domain.Levels
         [SerializeField] private string _id;
         [SerializeField] private string _symbol;
         [SerializeField] private string _colorHex;
-        [SerializeField] private string _iconAddress;
-        [SerializeField] private string _silhouetteAddress;
+        [SerializeField] private string _spriteAddress;
         [SerializeField] private string _traceGeometryAddress;
 
         public LevelDefinition(
             string id,
             string symbol,
             string colorHex,
-            string iconAddress,
-            string silhouetteAddress,
+            string spriteAddress,
             string traceGeometryAddress)
         {
             _id = id;
             _symbol = symbol;
             _colorHex = colorHex;
-            _iconAddress = iconAddress;
-            _silhouetteAddress = silhouetteAddress;
+            _spriteAddress = spriteAddress;
             _traceGeometryAddress = traceGeometryAddress;
         }
 
         public string Id => _id;
         public string Symbol => _symbol;
         public string ColorHex => _colorHex;
-        public string IconAddress => _iconAddress;
-        public string SilhouetteAddress => _silhouetteAddress;
+        public string SpriteAddress => _spriteAddress;
         public string TraceGeometryAddress => _traceGeometryAddress;
     }
 }
