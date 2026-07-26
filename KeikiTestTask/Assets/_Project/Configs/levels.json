@@ -1,0 +1,208 @@
+{
+  "_version": 2,
+  "_gameplay": {
+    "_mascotAddress": "trace/shared/mascot",
+    "_routeStarAddress": "trace/shared/star",
+    "_helperFingerAddress": "trace/shared/helper-finger",
+    "_praiseAudioAddresses": [
+      "audio/praise/awesome",
+      "audio/praise/excellent",
+      "audio/praise/thats-good"
+    ],
+    "_routeRevealDuration": 1.0,
+    "_voiceHintDelay": 7.0,
+    "_fingerHintDelay": 14.0,
+    "_helperLoopDuration": 2.5
+  },
+  "_categories": [
+    {
+      "_id": "letters",
+      "_title": "Trace letters",
+      "_instructionAudioAddress": "audio/instruction/letter",
+      "_levels": [
+        {
+          "_id": "letters-red",
+          "_symbol": "A",
+          "_colorHex": "#E81615",
+          "_iconAddress": "level-icons/letter-a",
+          "_silhouetteAddress": "level-icons/letter-a",
+          "_traceGeometryAddress": "trace/routes/letter-a"
+        },
+        {
+          "_id": "letters-orange",
+          "_symbol": "A",
+          "_colorHex": "#FFA500",
+          "_iconAddress": "level-icons/letter-a",
+          "_silhouetteAddress": "level-icons/letter-a",
+          "_traceGeometryAddress": "trace/routes/letter-a"
+        },
+        {
+          "_id": "letters-yellow",
+          "_symbol": "A",
+          "_colorHex": "#FAEA36",
+          "_iconAddress": "level-icons/letter-a",
+          "_silhouetteAddress": "level-icons/letter-a",
+          "_traceGeometryAddress": "trace/routes/letter-a"
+        },
+        {
+          "_id": "letters-green",
+          "_symbol": "A",
+          "_colorHex": "#79C315",
+          "_iconAddress": "level-icons/letter-a",
+          "_silhouetteAddress": "level-icons/letter-a",
+          "_traceGeometryAddress": "trace/routes/letter-a"
+        },
+        {
+          "_id": "letters-blue",
+          "_symbol": "A",
+          "_colorHex": "#497DE7",
+          "_iconAddress": "level-icons/letter-a",
+          "_silhouetteAddress": "level-icons/letter-a",
+          "_traceGeometryAddress": "trace/routes/letter-a"
+        },
+        {
+          "_id": "letters-indigo",
+          "_symbol": "A",
+          "_colorHex": "#4B359D",
+          "_iconAddress": "level-icons/letter-a",
+          "_silhouetteAddress": "level-icons/letter-a",
+          "_traceGeometryAddress": "trace/routes/letter-a"
+        },
+        {
+          "_id": "letters-violet",
+          "_symbol": "A",
+          "_colorHex": "#70359D",
+          "_iconAddress": "level-icons/letter-a",
+          "_silhouetteAddress": "level-icons/letter-a",
+          "_traceGeometryAddress": "trace/routes/letter-a"
+        }
+      ]
+    },
+    {
+      "_id": "numbers",
+      "_title": "Trace numbers",
+      "_instructionAudioAddress": "audio/instruction/number",
+      "_levels": [
+        {
+          "_id": "numbers-red",
+          "_symbol": "1",
+          "_colorHex": "#E81615",
+          "_iconAddress": "level-icons/number-1",
+          "_silhouetteAddress": "level-icons/number-1",
+          "_traceGeometryAddress": "trace/routes/number-1"
+        },
+        {
+          "_id": "numbers-orange",
+          "_symbol": "1",
+          "_colorHex": "#FFA500",
+          "_iconAddress": "level-icons/number-1",
+          "_silhouetteAddress": "level-icons/number-1",
+          "_traceGeometryAddress": "trace/routes/number-1"
+        },
+        {
+          "_id": "numbers-yellow",
+          "_symbol": "1",
+          "_colorHex": "#FAEA36",
+          "_iconAddress": "level-icons/number-1",
+          "_silhouetteAddress": "level-icons/number-1",
+          "_traceGeometryAddress": "trace/routes/number-1"
+        },
+        {
+          "_id": "numbers-green",
+          "_symbol": "1",
+          "_colorHex": "#79C315",
+          "_iconAddress": "level-icons/number-1",
+          "_silhouetteAddress": "level-icons/number-1",
+          "_traceGeometryAddress": "trace/routes/number-1"
+        },
+        {
+          "_id": "numbers-blue",
+          "_symbol": "1",
+          "_colorHex": "#497DE7",
+          "_iconAddress": "level-icons/number-1",
+          "_silhouetteAddress": "level-icons/number-1",
+          "_traceGeometryAddress": "trace/routes/number-1"
+        },
+        {
+          "_id": "numbers-indigo",
+          "_symbol": "1",
+          "_colorHex": "#4B359D",
+          "_iconAddress": "level-icons/number-1",
+          "_silhouetteAddress": "level-icons/number-1",
+          "_traceGeometryAddress": "trace/routes/number-1"
+        },
+        {
+          "_id": "numbers-violet",
+          "_symbol": "1",
+          "_colorHex": "#70359D",
+          "_iconAddress": "level-icons/number-1",
+          "_silhouetteAddress": "level-icons/number-1",
+          "_traceGeometryAddress": "trace/routes/number-1"
+        }
+      ]
+    },
+    {
+      "_id": "shapes",
+      "_title": "Trace shapes",
+      "_instructionAudioAddress": "audio/instruction/number",
+      "_levels": [
+        {
+          "_id": "shapes-red",
+          "_symbol": "O",
+          "_colorHex": "#E81615",
+          "_iconAddress": "level-icons/shape-circle",
+          "_silhouetteAddress": "level-icons/shape-circle",
+          "_traceGeometryAddress": "trace/routes/shape-circle"
+        },
+        {
+          "_id": "shapes-orange",
+          "_symbol": "O",
+          "_colorHex": "#FFA500",
+          "_iconAddress": "level-icons/shape-circle",
+          "_silhouetteAddress": "level-icons/shape-circle",
+          "_traceGeometryAddress": "trace/routes/shape-circle"
+        },
+        {
+          "_id": "shapes-yellow",
+          "_symbol": "O",
+          "_colorHex": "#FAEA36",
+          "_iconAddress": "level-icons/shape-circle",
+          "_silhouetteAddress": "level-icons/shape-circle",
+          "_traceGeometryAddress": "trace/routes/shape-circle"
+        },
+        {
+          "_id": "shapes-green",
+          "_symbol": "O",
+          "_colorHex": "#79C315",
+          "_iconAddress": "level-icons/shape-circle",
+          "_silhouetteAddress": "level-icons/shape-circle",
+          "_traceGeometryAddress": "trace/routes/shape-circle"
+        },
+        {
+          "_id": "shapes-blue",
+          "_symbol": "O",
+          "_colorHex": "#497DE7",
+          "_iconAddress": "level-icons/shape-circle",
+          "_silhouetteAddress": "level-icons/shape-circle",
+          "_traceGeometryAddress": "trace/routes/shape-circle"
+        },
+        {
+          "_id": "shapes-indigo",
+          "_symbol": "O",
+          "_colorHex": "#4B359D",
+          "_iconAddress": "level-icons/shape-circle",
+          "_silhouetteAddress": "level-icons/shape-circle",
+          "_traceGeometryAddress": "trace/routes/shape-circle"
+        },
+        {
+          "_id": "shapes-violet",
+          "_symbol": "O",
+          "_colorHex": "#70359D",
+          "_iconAddress": "level-icons/shape-circle",
+          "_silhouetteAddress": "level-icons/shape-circle",
+          "_traceGeometryAddress": "trace/routes/shape-circle"
+        }
+      ]
+    }
+  ]
+}

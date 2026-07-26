@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
-  m_Name: Level Icons
+  m_Name: Game Visuals
   m_EditorClassIdentifier: 
-  m_GroupName: Level Icons
+  m_GroupName: Game Visuals
   m_GUID: e70b43630d27893489d47a23dd79b06d
   m_SerializeEntries:
   - m_GUID: 2430f571027f7ca408d6a7e0923c5bdf
@@ -27,6 +27,21 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 82354426b51e2d846878040661334f05
     m_Address: level-icons/number-1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c291064739f42b448f5c72eab3f4f94
+    m_Address: trace/shared/helper-finger
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b348a9ed80ccd0a4cbbf2ed7ccb54885
+    m_Address: trace/shared/star
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c9775ea91d144b44fb8192ae14e99c7e
+    m_Address: trace/shared/mascot
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -59,13 +59,17 @@ namespace Runtime.CompositionRoot
         private void BindLevels()
         {
             Container
-                .Bind<ILevelRepository>()
-                .To<JsonLevelRepository>()
+                .BindInterfacesAndSelfTo<JsonLevelRepository>()
                 .AsSingle();
 
             Container
                 .Bind<ISelectedLevelStore>()
                 .To<SelectedLevelStore>()
+                .AsSingle();
+
+            Container
+                .Bind<ILevelSequenceService>()
+                .To<LevelSequenceService>()
                 .AsSingle();
         }
     }

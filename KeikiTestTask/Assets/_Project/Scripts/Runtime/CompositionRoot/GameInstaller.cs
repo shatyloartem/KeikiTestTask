@@ -1,5 +1,7 @@
 using System;
 using Core.UI;
+using Runtime.Infrastructure.AssetManagement;
+using Runtime.Services.Tracing;
 using Runtime.UI.Game;
 using UnityEngine;
 using Zenject;
@@ -9,11 +11,20 @@ namespace Runtime.CompositionRoot
     public sealed class GameInstaller : MonoInstaller
     {
         [SerializeField] private UIView[] _views;
+        [SerializeField] private TraceSurfaceView _traceSurfaceView;
+        [SerializeField] private TraceInputView _traceInputView;
+        [SerializeField] private AudioSource _audioSource;
 
         public override void InstallBindings()
         {
             ValidateViews();
+            
+            ValidateGameplayComponents();
+            
             BindViews();
+            
+            BindGameplay();
+            
             BindPresenters();
         }
 
@@ -35,6 +46,16 @@ namespace Runtime.CompositionRoot
             }
         }
 
+        private void ValidateGameplayComponents()
+        {
+            if (!_traceSurfaceView)
+                throw new InvalidOperationException($"{nameof(TraceSurfaceView)} is not assigned.");
+            if (!_traceInputView)
+                throw new InvalidOperationException($"{nameof(TraceInputView)} is not assigned.");
+            if (!_audioSource)
+                throw new InvalidOperationException($"{nameof(AudioSource)} is not assigned.");
+        }
+
         private void BindViews()
         {
             foreach (UIView view in _views)
@@ -42,6 +63,25 @@ namespace Runtime.CompositionRoot
                 Container.Bind<UIView>().FromInstance(view);
                 Container.Bind(view.GetType()).FromInstance(view);
             }
+        }
+
+        private void BindGameplay()
+        {
+            Container.BindInstance(_traceSurfaceView);
+            Container.BindInstance(_traceInputView);
+            Container.BindInstance(_audioSource);
+
+            Container
+                .BindInterfacesAndSelfTo<AddressableGameAssetProvider>()
+                .AsSingle();
+
+            Container
+                .BindInterfacesAndSelfTo<GameAudioPlayer>()
+                .AsSingle();
+
+            Container
+                .BindInterfacesAndSelfTo<GameFlowController>()
+                .AsSingle();
         }
         
         private void BindPresenters()
