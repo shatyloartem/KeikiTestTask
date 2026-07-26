@@ -9,37 +9,33 @@ namespace Runtime.UI.Menu.Components
     public sealed class LevelCardView : MonoBehaviour,
         IPointerDownHandler,
         IPointerUpHandler,
-        IPointerExitHandler
+        IInitializePotentialDragHandler,
+        IBeginDragHandler,
+        IDragHandler,
+        IEndDragHandler
     {
         [SerializeField] private Button _button;
         [SerializeField] private Image _icon;
         [SerializeField] private RectTransform _pressTarget;
         [SerializeField, Min(0f)] private float _pressDepth = 24f;
-        [SerializeField, Min(0f)] private float _pressSpeed = 600f;
 
         private LevelDefinition _level;
         private Action<LevelDefinition> _clickHandler;
+        private ScrollRect _scrollRect;
+        private RectTransform _rectTransform;
         private Vector2 _releasedPosition;
-        private Vector2 _targetPosition;
 
         private void Awake()
         {
+            _scrollRect = GetComponentInParent<ScrollRect>();
+            _rectTransform = (RectTransform)transform;
             _releasedPosition = _pressTarget.anchoredPosition;
-            _targetPosition = _releasedPosition;
             _button.onClick.AddListener(HandleClick);
-        }
-
-        private void Update()
-        {
-            _pressTarget.anchoredPosition = Vector2.MoveTowards(
-                _pressTarget.anchoredPosition,
-                _targetPosition,
-                _pressSpeed * Time.unscaledDeltaTime);
         }
 
         private void OnDisable()
         {
-            Release(immediate: true);
+            SetPressed(false);
         }
 
         private void OnDestroy()
@@ -52,28 +48,41 @@ namespace Runtime.UI.Menu.Components
             if (!_button.IsInteractable())
                 return;
 
-            _targetPosition = _releasedPosition + Vector2.down * _pressDepth;
+            SetPressed(true);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            Release();
+            SetPressed(false);
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public void OnInitializePotentialDrag(PointerEventData eventData)
         {
-            Release();
+            _scrollRect?.OnInitializePotentialDrag(eventData);
         }
 
-        public void Bind(
-            LevelDefinition level,
-            Sprite icon,
-            Action<LevelDefinition> clickHandler)
+        public void OnBeginDrag(PointerEventData eventData)
         {
-            _level = level
-                ?? throw new ArgumentNullException(nameof(level));
-            _clickHandler = clickHandler
-                ?? throw new ArgumentNullException(nameof(clickHandler));
+            eventData.eligibleForClick = false;
+            _scrollRect?.OnBeginDrag(eventData);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            _scrollRect?.OnDrag(eventData);
+            SetPressed(_button.IsInteractable() && IsPointerInside(eventData));
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            _scrollRect?.OnEndDrag(eventData);
+            SetPressed(false);
+        }
+
+        public void Bind(LevelDefinition level, Sprite icon, Action<LevelDefinition> clickHandler)
+        {
+            _level = level ?? throw new ArgumentNullException(nameof(level));
+            _clickHandler = clickHandler ?? throw new ArgumentNullException(nameof(clickHandler));
 
             if (!icon)
                 throw new ArgumentNullException(nameof(icon));
@@ -96,12 +105,19 @@ namespace Runtime.UI.Menu.Components
                 _clickHandler?.Invoke(_level);
         }
 
-        private void Release(bool immediate = false)
+        private void SetPressed(bool isPressed)
         {
-            _targetPosition = _releasedPosition;
+            _pressTarget.anchoredPosition = isPressed
+                ? _releasedPosition + Vector2.down * _pressDepth
+                : _releasedPosition;
+        }
 
-            if (immediate)
-                _pressTarget.anchoredPosition = _releasedPosition;
+        private bool IsPointerInside(PointerEventData eventData)
+        {
+            return RectTransformUtility.RectangleContainsScreenPoint(
+                _rectTransform,
+                eventData.position,
+                eventData.pressEventCamera);
         }
     }
 }
