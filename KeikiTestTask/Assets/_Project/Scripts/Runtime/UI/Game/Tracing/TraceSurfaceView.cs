@@ -5,10 +5,11 @@ using Cysharp.Threading.Tasks;
 using Runtime.Domain.Tracing;
 using Runtime.Services.Tracing;
 using Runtime.Services.Tracing.Input;
+using Runtime.UI.Game.Tracing.Graphics;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Runtime.UI.Game
+namespace Runtime.UI.Game.Tracing
 {
     [RequireComponent(typeof(RectTransform))]
     public sealed class TraceSurfaceView : MonoBehaviour

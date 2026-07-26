@@ -8,6 +8,7 @@ using Runtime.Services.Audio;
 using Runtime.Services.Levels;
 using Runtime.Services.Tracing.Assets;
 using Runtime.UI.Game;
+using Runtime.UI.Game.Tracing;
 using UnityEngine;
 
 namespace Runtime.Services.Tracing.Flow

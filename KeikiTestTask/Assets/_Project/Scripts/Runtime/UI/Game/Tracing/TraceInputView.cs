@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Runtime.UI.Game
+namespace Runtime.UI.Game.Tracing
 {
     public sealed class TraceInputView : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
     {

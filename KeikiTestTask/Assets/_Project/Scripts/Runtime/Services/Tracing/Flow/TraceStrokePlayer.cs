@@ -6,6 +6,7 @@ using Runtime.Domain.Tracing;
 using Runtime.Services.Tracing.Assets;
 using Runtime.Services.Tracing.Hints;
 using Runtime.UI.Game;
+using Runtime.UI.Game.Tracing;
 
 namespace Runtime.Services.Tracing.Flow
 {

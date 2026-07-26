@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using Runtime.Domain.Tracing;
 using Runtime.Services.Tracing.Input;
 using Runtime.UI.Game;
+using Runtime.UI.Game.Tracing;
 using UnityEngine;
 
 namespace Runtime.Services.Tracing

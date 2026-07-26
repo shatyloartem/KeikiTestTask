@@ -4,7 +4,7 @@ using Runtime.Domain.Tracing;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Runtime.UI.Game
+namespace Runtime.UI.Game.Tracing.Graphics
 {
     public sealed class TraceTrailGraphic : MaskableGraphic
     {
