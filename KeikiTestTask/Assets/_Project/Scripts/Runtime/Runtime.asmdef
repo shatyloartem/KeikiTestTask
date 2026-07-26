@@ -1,0 +1,22 @@
+{
+    "name": "Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Core",
+        "UniTask",
+        "UniTask.Addressables",
+        "Zenject",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

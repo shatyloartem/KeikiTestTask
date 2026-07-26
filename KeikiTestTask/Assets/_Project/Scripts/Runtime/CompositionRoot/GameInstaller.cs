@@ -1,0 +1,113 @@
+using System;
+using Core.UI;
+using Runtime.Services.Audio;
+using Runtime.Services.Tracing.Assets;
+using Runtime.Services.Tracing.Flow;
+using Runtime.Services.Tracing.Hints;
+using Runtime.Services.Tracing.Input;
+using Runtime.UI.Game;
+using Runtime.UI.Game.Tracing;
+using UnityEngine;
+using Zenject;
+
+namespace Runtime.CompositionRoot
+{
+    public sealed class GameInstaller : MonoInstaller
+    {
+        [SerializeField] private UIView[] _views;
+        [SerializeField] private TraceSurfaceView _traceSurfaceView;
+        [SerializeField] private TraceInputView _traceInputView;
+        [SerializeField] private AudioSource _audioSource;
+
+        public override void InstallBindings()
+        {
+            ValidateViews();
+            
+            ValidateGameplayComponents();
+            
+            BindViews();
+            
+            BindGameplay();
+            
+            BindPresenters();
+        }
+
+        private void ValidateViews()
+        {
+            if (_views == null || _views.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    $"At least one view must be assigned in {nameof(GameInstaller)}.");
+            }
+
+            for (int i = 0; i < _views.Length; i++)
+            {
+                if (!_views[i])
+                {
+                    throw new InvalidOperationException(
+                        $"View at index {i} is not assigned in {nameof(GameInstaller)}.");
+                }
+            }
+        }
+
+        private void ValidateGameplayComponents()
+        {
+            if (!_traceSurfaceView)
+                throw new InvalidOperationException($"{nameof(TraceSurfaceView)} is not assigned.");
+            if (!_traceInputView)
+                throw new InvalidOperationException($"{nameof(TraceInputView)} is not assigned.");
+            if (!_audioSource)
+                throw new InvalidOperationException($"{nameof(AudioSource)} is not assigned.");
+        }
+
+        private void BindViews()
+        {
+            foreach (UIView view in _views)
+            {
+                Container.Bind<UIView>().FromInstance(view);
+                Container.Bind(view.GetType()).FromInstance(view);
+            }
+        }
+
+        private void BindGameplay()
+        {
+            Container.BindInstance(_audioSource);
+            Container.BindInterfacesTo<TraceSurfaceView>().FromInstance(_traceSurfaceView);
+            Container.Bind<ITraceInputSource>().FromInstance(_traceInputView);
+
+            Container
+                .BindInterfacesTo<GameAudioPlayer>()
+                .AsSingle();
+
+            Container
+                .Bind<ITraceAssetLoader>()
+                .To<TraceAssetLoader>()
+                .AsSingle();
+
+            Container
+                .BindInterfacesTo<TraceInputController>()
+                .AsSingle();
+
+            Container
+                .BindInterfacesTo<TraceHintController>()
+                .AsSingle();
+
+            Container
+                .Bind<ITraceStrokePlayer>()
+                .To<TraceStrokePlayer>()
+                .AsSingle();
+
+            Container
+                .BindInterfacesTo<GameFlowController>()
+                .AsSingle();
+        }
+        
+        private void BindPresenters()
+        {
+            Container
+                .BindInterfacesAndSelfTo<GamePresenter>()
+                .AsSingle()
+                .NonLazy();
+        }
+    }
+}
