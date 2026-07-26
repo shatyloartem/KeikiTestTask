@@ -2,23 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Object = UnityEngine.Object;
 
 namespace Runtime.Infrastructure.AssetManagement
 {
     public sealed class AddressableGameAssetProvider : IGameAssetProvider
     {
         private readonly Dictionary<AssetKey, AsyncOperationHandle> _handles = new();
-        private readonly Dictionary<AssetKey, UnityEngine.Object> _assets = new();
+        private readonly Dictionary<AssetKey, Object> _assets = new();
 
         private bool _isDisposed;
 
-        public async UniTask<T> LoadAsync<T>(
-            string address,
-            CancellationToken cancellationToken = default)
-            where T : UnityEngine.Object
+        public async UniTask<T> LoadAsync<T>(string address, CancellationToken cancellationToken = default)
+            where T : Object
         {
             ThrowIfDisposed();
 
@@ -27,7 +25,7 @@ namespace Runtime.Infrastructure.AssetManagement
 
             AssetKey key = new(address, typeof(T));
 
-            if (_assets.TryGetValue(key, out UnityEngine.Object cachedAsset))
+            if (_assets.TryGetValue(key, out Object cachedAsset))
                 return (T)cachedAsset;
 
             AsyncOperationHandle<T> handle = Addressables.LoadAssetAsync<T>(address);

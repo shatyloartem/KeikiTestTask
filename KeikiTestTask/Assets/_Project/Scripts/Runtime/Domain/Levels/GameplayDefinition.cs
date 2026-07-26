@@ -11,10 +11,10 @@ namespace Runtime.Domain.Levels
         [SerializeField] private string _routeStarAddress;
         [SerializeField] private string _helperFingerAddress;
         [SerializeField] private List<string> _praiseAudioAddresses;
-        [SerializeField, Min(0.01f)] private float _routeRevealDuration = 1f;
-        [SerializeField, Min(0.01f)] private float _voiceHintDelay = 7f;
-        [SerializeField, Min(0.01f)] private float _fingerHintDelay = 14f;
-        [SerializeField, Min(0.01f)] private float _helperLoopDuration = 2.5f;
+        [SerializeField, Min(0.01f)] private float _routeRevealDuration;
+        [SerializeField, Min(0.01f)] private float _voiceHintDelay;
+        [SerializeField, Min(0.01f)] private float _fingerHintDelay;
+        [SerializeField, Min(0.01f)] private float _helperLoopDuration;
 
         public GameplayDefinition(
             string mascotAddress,

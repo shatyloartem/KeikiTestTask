@@ -82,7 +82,7 @@ namespace Runtime.Domain.Tracing
             _strokes = strokes ?? new List<TraceStrokeDefinition>();
         }
 
-        public void ValidateOrThrow()
+        public void Validate()
         {
             if (string.IsNullOrWhiteSpace(_geometryId))
                 throw new InvalidDataException("Trace geometry id cannot be empty.");

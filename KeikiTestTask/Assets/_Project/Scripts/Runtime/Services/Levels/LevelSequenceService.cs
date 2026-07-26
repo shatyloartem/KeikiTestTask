@@ -5,10 +5,7 @@ namespace Runtime.Services.Levels
 {
     public sealed class LevelSequenceService : ILevelSequenceService
     {
-        public bool TryResolve(
-            LevelCatalog catalog,
-            string levelId,
-            out LevelContext context)
+        public bool TryResolve(LevelCatalog catalog, string levelId, out LevelContext context)
         {
             if (catalog == null)
                 throw new ArgumentNullException(nameof(catalog));
@@ -34,9 +31,7 @@ namespace Runtime.Services.Levels
             return false;
         }
 
-        public LevelContext GetNext(
-            LevelCatalog catalog,
-            LevelContext current)
+        public LevelContext GetNext(LevelCatalog catalog, LevelContext current)
         {
             if (catalog == null)
                 throw new ArgumentNullException(nameof(catalog));

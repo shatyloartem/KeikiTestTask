@@ -15,6 +15,15 @@ namespace Editor.Tracing
 
         private const float SceneScale = 10f;
         private const float TraceSurfaceAspect = 0.86f;
+        private const float SceneFrameSize = SceneScale * 0.62f;
+        private const float PathLineWidth = 4f;
+        private const float DirectionArrowSize = 0.18f;
+        private const float TangentHandleSize = 0.09f;
+        private const int DirectionArrowCount = 8;
+        private const int RoundCapSegmentCount = 12;
+
+        private static readonly Color SurfaceBoundsColor = new(0.35f, 0.55f, 1f, 0.45f);
+        private static readonly Color InactivePathColor = new(1f, 1f, 1f, 0.45f);
 
         [SerializeField] private TraceGeometryAsset _geometry;
         [SerializeField] private Sprite _previewSprite;
@@ -22,11 +31,23 @@ namespace Editor.Tracing
         [SerializeField] private KnotEditMode _knotEditMode = KnotEditMode.Linear;
         [SerializeField] private bool _showPaintedStroke = true;
         [SerializeField] private Color _paintedStrokeColor = new(0.95f, 0.12f, 0.12f, 1f);
+
+        private readonly List<Vector3> _meshVertices = new();
+        private readonly List<Vector2> _meshUv = new();
+        private readonly List<int> _meshTriangles = new();
+
         private UnityEditor.Editor _assetEditor;
         private Material _maskedStrokeMaterial;
-        private int _activeStrokeIndex;
-        private Vector2 _scrollPosition;
+        private Mesh _paintedStrokeMesh;
         private IReadOnlyList<string> _validationMessages;
+        private Vector2 _scrollPosition;
+        private int _activeStrokeIndex;
+
+        private bool HasStrokes => _geometry && _geometry.Strokes.Count > 0;
+
+        private TraceStrokeDefinition ActiveStroke => HasStrokes
+            ? _geometry.Strokes[Mathf.Clamp(_activeStrokeIndex, 0, _geometry.Strokes.Count - 1)]
+            : null;
 
         [MenuItem("Window/Keiki/Trace Route Editor")]
         private static void Open()
@@ -42,11 +63,38 @@ namespace Editor.Tracing
         private void OnDisable()
         {
             SceneView.duringSceneGui -= DrawSceneHandles;
-            DestroyImmediate(_assetEditor);
-            DestroyImmediate(_maskedStrokeMaterial);
+            DestroyEditorResources();
         }
 
         private void OnGUI()
+        {
+            DrawGeometrySelector();
+            DrawPreviewSettings();
+
+            if (!_geometry)
+            {
+                EditorGUILayout.HelpBox(
+                    "Select or create a TraceGeometryAsset.",
+                    MessageType.Info);
+                return;
+            }
+
+            EditorGUILayout.Space();
+            DrawStrokeSettings();
+            DrawToolbar();
+            DrawValidationMessages();
+
+            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox(
+                "Use Scene View handles to move knots and tangents. " +
+                "The outlined rectangle represents normalized TraceSurface coordinates " +
+                $"with a {TraceSurfaceAspect:0.##}:1 aspect ratio.",
+                MessageType.None);
+
+            DrawGeometryInspector();
+        }
+
+        private void DrawGeometrySelector()
         {
             EditorGUI.BeginChangeCheck();
             TraceGeometryAsset selected = (TraceGeometryAsset)EditorGUILayout.ObjectField(
@@ -55,16 +103,19 @@ namespace Editor.Tracing
                 typeof(TraceGeometryAsset),
                 false);
 
-            if (EditorGUI.EndChangeCheck())
-            {
-                _geometry = selected;
-                _activeStrokeIndex = 0;
-                _validationMessages = null;
-                DestroyImmediate(_assetEditor);
-                _assetEditor = null;
-                SceneView.RepaintAll();
-            }
+            if (!EditorGUI.EndChangeCheck())
+                return;
 
+            _geometry = selected;
+            _activeStrokeIndex = 0;
+            _validationMessages = null;
+            DestroyImmediate(_assetEditor);
+            _assetEditor = null;
+            SceneView.RepaintAll();
+        }
+
+        private void DrawPreviewSettings()
+        {
             EditorGUI.BeginChangeCheck();
             _previewSprite = (Sprite)EditorGUILayout.ObjectField(
                 "Preview silhouette",
@@ -83,111 +134,51 @@ namespace Editor.Tracing
 
             if (EditorGUI.EndChangeCheck())
                 SceneView.RepaintAll();
+        }
 
-            if (!_geometry)
+        private void DrawStrokeSettings()
+        {
+            if (!HasStrokes)
+                return;
+
+            string[] strokeNames = new string[_geometry.Strokes.Count];
+
+            for (int i = 0; i < strokeNames.Length; i++)
+                strokeNames[i] = $"{i + 1}. {_geometry.Strokes[i].Id}";
+
+            _activeStrokeIndex = Mathf.Clamp(
+                EditorGUILayout.Popup(
+                    "Active stroke",
+                    _activeStrokeIndex,
+                    strokeNames),
+                0,
+                strokeNames.Length - 1);
+
+            DrawActiveStrokeInsets(ActiveStroke);
+
+            EditorGUILayout.Space();
+            _knotEditMode = (KnotEditMode)EditorGUILayout.EnumPopup(
+                "Knot edit mode",
+                _knotEditMode);
+
+            if (_knotEditMode == KnotEditMode.Linear)
             {
                 EditorGUILayout.HelpBox(
-                    "Select or create a TraceGeometryAsset.",
-                    MessageType.Info);
-                return;
+                    "Linear mode is active. Moving any knot keeps the active stroke " +
+                    "made of straight segments. Select Bezier to edit tangent handles.",
+                    MessageType.None);
             }
 
-            EditorGUILayout.Space();
+            _showPaintedStroke = EditorGUILayout.Toggle(
+                "Show painted stroke",
+                _showPaintedStroke);
 
-            if (_geometry.Strokes.Count > 0)
+            if (_showPaintedStroke)
             {
-                string[] strokeNames = new string[_geometry.Strokes.Count];
-
-                for (int i = 0; i < strokeNames.Length; i++)
-                    strokeNames[i] = $"{i + 1}. {_geometry.Strokes[i].Id}";
-
-                _activeStrokeIndex = Mathf.Clamp(
-                    EditorGUILayout.Popup(
-                        "Active stroke",
-                        _activeStrokeIndex,
-                        strokeNames),
-                    0,
-                    strokeNames.Length - 1);
-
-                DrawActiveStrokeInsets(
-                    _geometry.Strokes[_activeStrokeIndex]);
-
-                EditorGUILayout.Space();
-                _knotEditMode = (KnotEditMode)EditorGUILayout.EnumPopup(
-                    "Knot edit mode",
-                    _knotEditMode);
-
-                if (_knotEditMode == KnotEditMode.Linear)
-                {
-                    EditorGUILayout.HelpBox(
-                        "Linear mode is active. Moving any knot keeps the active stroke " +
-                        "made of straight segments. Select Bezier to edit tangent handles.",
-                        MessageType.None);
-                }
-
-                _showPaintedStroke = EditorGUILayout.Toggle(
-                    "Show painted stroke",
-                    _showPaintedStroke);
-
-                if (_showPaintedStroke)
-                {
-                    _paintedStrokeColor = EditorGUILayout.ColorField(
-                        "Painted stroke color",
-                        _paintedStrokeColor);
-                }
+                _paintedStrokeColor = EditorGUILayout.ColorField(
+                    "Painted stroke color",
+                    _paintedStrokeColor);
             }
-
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                if (GUILayout.Button("Frame Route"))
-                    FrameRouteInSceneView();
-
-                if (GUILayout.Button("Bake All"))
-                {
-                    TraceGeometryBaker.BakeAsset(_geometry);
-                    _validationMessages = TraceGeometryValidator.Validate(_geometry);
-                    AssetDatabase.SaveAssets();
-                    SceneView.RepaintAll();
-                }
-
-                using (new EditorGUI.DisabledScope(_geometry.Strokes.Count == 0))
-                {
-                    if (GUILayout.Button("Reverse Active"))
-                    {
-                        Undo.RecordObject(_geometry, "Reverse trace stroke");
-                        _geometry.Strokes[_activeStrokeIndex].Reverse();
-                        TraceGeometryBaker.BakeStroke(_geometry.Strokes[_activeStrokeIndex]);
-                        EditorUtility.SetDirty(_geometry);
-                        SceneView.RepaintAll();
-                    }
-
-                    if (GUILayout.Button("Make Active Linear"))
-                        MakeActiveStrokeLinear();
-                }
-
-                if (GUILayout.Button("Validate"))
-                    _validationMessages = TraceGeometryValidator.Validate(_geometry);
-            }
-
-            DrawValidationMessages();
-
-            EditorGUILayout.Space();
-            EditorGUILayout.HelpBox(
-                "Use Scene View handles to move knots and tangents. " +
-                "The outlined rectangle represents normalized TraceSurface coordinates " +
-                $"with a {TraceSurfaceAspect:0.##}:1 aspect ratio.",
-                MessageType.None);
-
-            _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
-            UnityEditor.Editor.CreateCachedEditor(
-                _geometry,
-                null,
-                ref _assetEditor);
-            _assetEditor.OnInspectorGUI();
-            EditorGUILayout.EndScrollView();
-
-            if (GUI.changed)
-                SceneView.RepaintAll();
         }
 
         private void DrawActiveStrokeInsets(TraceStrokeDefinition stroke)
@@ -229,9 +220,65 @@ namespace Editor.Tracing
                 overrideInsets,
                 firstPointInset,
                 starEndInset);
-            EditorUtility.SetDirty(_geometry);
-            _validationMessages = null;
+            MarkGeometryChanged();
+        }
+
+        private void DrawToolbar()
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Frame Route"))
+                    FrameRouteInSceneView();
+
+                if (GUILayout.Button("Bake All"))
+                    BakeAll();
+
+                using (new EditorGUI.DisabledScope(!HasStrokes))
+                {
+                    if (GUILayout.Button("Reverse Active"))
+                        ReverseActiveStroke();
+
+                    if (GUILayout.Button("Make Active Linear"))
+                        MakeActiveStrokeLinear();
+                }
+
+                if (GUILayout.Button("Validate"))
+                    _validationMessages = TraceGeometryValidator.Validate(_geometry);
+            }
+        }
+
+        private void BakeAll()
+        {
+            TraceGeometryBaker.BakeAsset(_geometry);
+            _validationMessages = TraceGeometryValidator.Validate(_geometry);
+            AssetDatabase.SaveAssets();
             SceneView.RepaintAll();
+        }
+
+        private void ReverseActiveStroke()
+        {
+            TraceStrokeDefinition stroke = ActiveStroke;
+
+            if (stroke == null)
+                return;
+
+            Undo.RecordObject(_geometry, "Reverse trace stroke");
+            stroke.Reverse();
+            TraceGeometryBaker.BakeStroke(stroke);
+            MarkGeometryChanged();
+        }
+
+        private void MakeActiveStrokeLinear()
+        {
+            TraceStrokeDefinition stroke = ActiveStroke;
+
+            if (stroke == null)
+                return;
+
+            Undo.RecordObject(_geometry, "Make trace stroke linear");
+            SetLinearTangents(stroke);
+            TraceGeometryBaker.BakeStroke(stroke);
+            MarkGeometryChanged();
         }
 
         private void DrawValidationMessages()
@@ -249,37 +296,62 @@ namespace Editor.Tracing
                 EditorGUILayout.HelpBox(message, MessageType.Warning);
         }
 
-        private void DrawSceneHandles(SceneView sceneView)
+        private void DrawGeometryInspector()
+        {
+            using EditorGUILayout.ScrollViewScope scroll =
+                new(_scrollPosition);
+            _scrollPosition = scroll.scrollPosition;
+
+            UnityEditor.Editor.CreateCachedEditor(
+                _geometry,
+                null,
+                ref _assetEditor);
+
+            EditorGUI.BeginChangeCheck();
+            _assetEditor.OnInspectorGUI();
+
+            if (!EditorGUI.EndChangeCheck())
+                return;
+
+            _validationMessages = null;
+            SceneView.RepaintAll();
+        }
+
+        private void DrawSceneHandles(SceneView _)
         {
             if (!_geometry)
                 return;
 
             DrawPreviewSprite();
+            DrawSurfaceBounds();
 
-            Handles.color = new Color(0.35f, 0.55f, 1f, 0.45f);
-            Handles.DrawWireCube(
-                Vector3.zero,
-                new Vector3(SceneScale * TraceSurfaceAspect, SceneScale, 0f));
+            int activeStrokeIndex = Mathf.Clamp(
+                _activeStrokeIndex,
+                0,
+                _geometry.Strokes.Count - 1);
 
-            for (int strokeIndex = 0;
-                 strokeIndex < _geometry.Strokes.Count;
-                 strokeIndex++)
+            for (int strokeIndex = 0; strokeIndex < _geometry.Strokes.Count; strokeIndex++)
             {
                 TraceStrokeDefinition stroke = _geometry.Strokes[strokeIndex];
-                bool isActive = strokeIndex == _activeStrokeIndex;
+                bool isActive = strokeIndex == activeStrokeIndex;
 
                 if (isActive && _showPaintedStroke)
                     DrawPaintedStroke(stroke);
 
-                Handles.color = strokeIndex == _activeStrokeIndex
-                    ? Color.yellow
-                    : new Color(1f, 1f, 1f, 0.45f);
-
+                Handles.color = isActive ? Color.yellow : InactivePathColor;
                 DrawBakedPath(stroke);
 
                 if (isActive)
                     DrawKnotHandles(stroke);
             }
+        }
+
+        private static void DrawSurfaceBounds()
+        {
+            Handles.color = SurfaceBoundsColor;
+            Handles.DrawWireCube(
+                Vector3.zero,
+                new Vector3(SceneScale * TraceSurfaceAspect, SceneScale, 0f));
         }
 
         private void DrawPreviewSprite()
@@ -316,14 +388,21 @@ namespace Editor.Tracing
             Color previousColor = GUI.color;
 
             Handles.BeginGUI();
-            GUI.color = new Color(1f, 1f, 1f, _previewOpacity);
-            GUI.DrawTextureWithTexCoords(
-                previewRect,
-                texture,
-                textureCoordinates,
-                true);
-            GUI.color = previousColor;
-            Handles.EndGUI();
+
+            try
+            {
+                GUI.color = new Color(1f, 1f, 1f, _previewOpacity);
+                GUI.DrawTextureWithTexCoords(
+                    previewRect,
+                    texture,
+                    textureCoordinates,
+                    true);
+            }
+            finally
+            {
+                GUI.color = previousColor;
+                Handles.EndGUI();
+            }
         }
 
         private static Rect FitAspect(Rect container, float contentAspect)
@@ -364,13 +443,13 @@ namespace Editor.Tracing
             sceneView.LookAt(
                 Vector3.zero,
                 Quaternion.identity,
-                SceneScale * 0.62f,
+                SceneFrameSize,
                 true,
                 true);
             sceneView.Repaint();
         }
 
-        private void DrawBakedPath(TraceStrokeDefinition stroke)
+        private static void DrawBakedPath(TraceStrokeDefinition stroke)
         {
             if (stroke.BakedPoints.Count < 2)
                 return;
@@ -380,9 +459,9 @@ namespace Editor.Tracing
             for (int i = 0; i < points.Length; i++)
                 points[i] = ToScene(stroke.BakedPoints[i]);
 
-            Handles.DrawAAPolyLine(4f, points);
+            Handles.DrawAAPolyLine(PathLineWidth, points);
 
-            int arrowStep = Mathf.Max(1, points.Length / 8);
+            int arrowStep = Mathf.Max(1, points.Length / DirectionArrowCount);
 
             for (int i = arrowStep; i < points.Length; i += arrowStep)
             {
@@ -391,12 +470,13 @@ namespace Editor.Tracing
                     0,
                     points[i],
                     Quaternion.LookRotation(Vector3.forward, tangent),
-                    0.18f,
+                    DirectionArrowSize,
                     EventType.Repaint);
             }
         }
 
-        private void DrawPaintedStroke(TraceStrokeDefinition stroke)
+        private void DrawPaintedStroke(
+            TraceStrokeDefinition stroke)
         {
             if (stroke.BakedPoints.Count < 2)
                 return;
@@ -420,6 +500,32 @@ namespace Editor.Tracing
             TraceStrokeDefinition stroke,
             float halfWidth)
         {
+            if (!EnsureMaskedStrokeResources())
+                return false;
+
+            UpdatePaintedStrokeMesh(stroke, halfWidth);
+
+            Rect spriteRect = _previewSprite.rect;
+            Texture2D texture = _previewSprite.texture;
+            _maskedStrokeMaterial.SetTexture("_MainTex", texture);
+            _maskedStrokeMaterial.SetColor("_Color", _paintedStrokeColor);
+            _maskedStrokeMaterial.SetVector(
+                "_SpriteRect",
+                new Vector4(
+                    spriteRect.x / texture.width,
+                    spriteRect.y / texture.height,
+                    spriteRect.width / texture.width,
+                    spriteRect.height / texture.height));
+
+            if (!_maskedStrokeMaterial.SetPass(0))
+                return false;
+
+            Graphics.DrawMeshNow(_paintedStrokeMesh, Matrix4x4.identity);
+            return true;
+        }
+
+        private bool EnsureMaskedStrokeResources()
+        {
             if (!_maskedStrokeMaterial)
             {
                 Shader shader = Shader.Find(
@@ -434,36 +540,26 @@ namespace Editor.Tracing
                 };
             }
 
-            Mesh mesh = BuildPaintedStrokeMesh(stroke, halfWidth);
-            Rect spriteRect = _previewSprite.rect;
-            Texture2D texture = _previewSprite.texture;
-            _maskedStrokeMaterial.SetTexture("_MainTex", texture);
-            _maskedStrokeMaterial.SetColor("_Color", _paintedStrokeColor);
-            _maskedStrokeMaterial.SetVector(
-                "_SpriteRect",
-                new Vector4(
-                    spriteRect.x / texture.width,
-                    spriteRect.y / texture.height,
-                    spriteRect.width / texture.width,
-                    spriteRect.height / texture.height));
+            if (!_paintedStrokeMesh)
+            {
+                _paintedStrokeMesh = new Mesh
+                {
+                    name = "Trace Route Preview",
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
 
-            bool passSet = _maskedStrokeMaterial.SetPass(0);
-
-            if (passSet)
-                Graphics.DrawMeshNow(mesh, Matrix4x4.identity);
-
-            DestroyImmediate(mesh);
-            return passSet;
+            return true;
         }
 
-        private Mesh BuildPaintedStrokeMesh(
+        private void UpdatePaintedStrokeMesh(
             TraceStrokeDefinition stroke,
             float halfWidth)
         {
             IReadOnlyList<Vector2> points = stroke.BakedPoints;
-            List<Vector3> vertices = new(points.Count * 2 + 28);
-            List<Vector2> textureCoordinates = new(points.Count * 2 + 28);
-            List<int> triangles = new((points.Count - 1) * 6 + 72);
+            _meshVertices.Clear();
+            _meshUv.Clear();
+            _meshTriangles.Clear();
 
             for (int i = 0; i < points.Count; i++)
             {
@@ -473,14 +569,8 @@ namespace Editor.Tracing
                 Vector3 tangent = (next - previous).normalized;
                 Vector3 normal = new(-tangent.y, tangent.x, 0f);
 
-                AddMaskedVertex(
-                    vertices,
-                    textureCoordinates,
-                    current + normal * halfWidth);
-                AddMaskedVertex(
-                    vertices,
-                    textureCoordinates,
-                    current - normal * halfWidth);
+                AddMeshVertex(current + normal * halfWidth);
+                AddMeshVertex(current - normal * halfWidth);
 
                 if (i == 0)
                     continue;
@@ -489,77 +579,53 @@ namespace Editor.Tracing
                 int currentRight = currentLeft + 1;
                 int previousLeft = currentLeft - 2;
                 int previousRight = currentLeft - 1;
-                triangles.Add(previousLeft);
-                triangles.Add(currentLeft);
-                triangles.Add(currentRight);
-                triangles.Add(previousLeft);
-                triangles.Add(currentRight);
-                triangles.Add(previousRight);
+                _meshTriangles.Add(previousLeft);
+                _meshTriangles.Add(currentLeft);
+                _meshTriangles.Add(currentRight);
+                _meshTriangles.Add(previousLeft);
+                _meshTriangles.Add(currentRight);
+                _meshTriangles.Add(previousRight);
             }
 
-            AddRoundCap(
-                vertices,
-                textureCoordinates,
-                triangles,
-                ToScene(points[0]),
-                halfWidth);
-            AddRoundCap(
-                vertices,
-                textureCoordinates,
-                triangles,
-                ToScene(points[^1]),
-                halfWidth);
+            AddRoundCap(ToScene(points[0]), halfWidth);
+            AddRoundCap(ToScene(points[^1]), halfWidth);
 
-            Mesh mesh = new()
-            {
-                hideFlags = HideFlags.HideAndDontSave
-            };
-            mesh.SetVertices(vertices);
-            mesh.SetUVs(0, textureCoordinates);
-            mesh.SetTriangles(triangles, 0);
-            mesh.RecalculateBounds();
-            return mesh;
+            _paintedStrokeMesh.Clear();
+            _paintedStrokeMesh.SetVertices(_meshVertices);
+            _paintedStrokeMesh.SetUVs(0, _meshUv);
+            _paintedStrokeMesh.SetTriangles(_meshTriangles, 0);
+            _paintedStrokeMesh.RecalculateBounds();
         }
 
-        private void AddRoundCap(
-            List<Vector3> vertices,
-            List<Vector2> textureCoordinates,
-            List<int> triangles,
-            Vector3 center,
-            float radius)
+        private void AddRoundCap(Vector3 center, float radius)
         {
-            const int segmentCount = 12;
-            int centerIndex = vertices.Count;
-            AddMaskedVertex(vertices, textureCoordinates, center);
+            int centerIndex = _meshVertices.Count;
+            AddMeshVertex(center);
 
-            for (int i = 0; i <= segmentCount; i++)
+            for (int i = 0; i <= RoundCapSegmentCount; i++)
             {
-                float angle = Mathf.PI * 2f * i / segmentCount;
+                float angle = Mathf.PI * 2f * i / RoundCapSegmentCount;
                 Vector3 position = center +
                                    new Vector3(
                                        Mathf.Cos(angle),
                                        Mathf.Sin(angle),
                                        0f) *
                                    radius;
-                AddMaskedVertex(vertices, textureCoordinates, position);
+                AddMeshVertex(position);
 
                 if (i == 0)
                     continue;
 
-                triangles.Add(centerIndex);
-                triangles.Add(centerIndex + i);
-                triangles.Add(centerIndex + i + 1);
+                _meshTriangles.Add(centerIndex);
+                _meshTriangles.Add(centerIndex + i);
+                _meshTriangles.Add(centerIndex + i + 1);
             }
         }
 
-        private void AddMaskedVertex(
-            List<Vector3> vertices,
-            List<Vector2> textureCoordinates,
-            Vector3 position)
+        private void AddMeshVertex(Vector3 position)
         {
-            vertices.Add(position);
-            textureCoordinates.Add(
-                SurfaceToSpriteUv(ToNormalized(position)));
+            _meshVertices.Add(position);
+            _meshUv.Add(SurfaceToSpriteUv(ToNormalized(position)));
         }
 
         private Vector2 SurfaceToSpriteUv(Vector2 surfacePosition)
@@ -570,11 +636,11 @@ namespace Editor.Tracing
             if (spriteAspect > TraceSurfaceAspect)
             {
                 float fittedHeight = TraceSurfaceAspect / spriteAspect;
-                float inset = (1f - fittedHeight) * 0.5f;
+                float verticalInset = (1f - fittedHeight) * 0.5f;
 
                 return new Vector2(
                     surfacePosition.x,
-                    (surfacePosition.y - inset) / fittedHeight);
+                    (surfacePosition.y - verticalInset) / fittedHeight);
             }
 
             float fittedWidth = spriteAspect / TraceSurfaceAspect;
@@ -617,93 +683,96 @@ namespace Editor.Tracing
         private void DrawKnotHandles(TraceStrokeDefinition stroke)
         {
             foreach (TraceBezierKnot knot in stroke.Knots)
-            {
-                Vector3 position = ToScene(knot.Position);
-                EditorGUI.BeginChangeCheck();
-                Vector3 newPosition = Handles.PositionHandle(position, Quaternion.identity);
-                bool positionChanged = EditorGUI.EndChangeCheck();
-
-                Vector3 newInPosition = default;
-                Vector3 newOutPosition = default;
-                bool inTangentChanged = false;
-                bool outTangentChanged = false;
-
-                if (_knotEditMode == KnotEditMode.Bezier)
-                {
-                    Vector3 inPosition = ToScene(knot.Position + knot.InTangent);
-                    Vector3 outPosition = ToScene(knot.Position + knot.OutTangent);
-
-                    Handles.color = Color.cyan;
-                    Handles.DrawLine(position, inPosition);
-                    Handles.DrawLine(position, outPosition);
-
-                    EditorGUI.BeginChangeCheck();
-                    newInPosition = Handles.FreeMoveHandle(
-                        inPosition,
-                        0.09f,
-                        Vector3.zero,
-                        Handles.DotHandleCap);
-                    inTangentChanged = EditorGUI.EndChangeCheck();
-
-                    EditorGUI.BeginChangeCheck();
-                    newOutPosition = Handles.FreeMoveHandle(
-                        outPosition,
-                        0.09f,
-                        Vector3.zero,
-                        Handles.DotHandleCap);
-                    outTangentChanged = EditorGUI.EndChangeCheck();
-                }
-
-                if (!positionChanged &&
-                    !inTangentChanged &&
-                    !outTangentChanged)
-                {
-                    continue;
-                }
-
-                Undo.RecordObject(_geometry, "Edit trace knot");
-
-                if (positionChanged)
-                    knot.SetPosition(ToNormalized(newPosition));
-
-                if (_knotEditMode == KnotEditMode.Linear)
-                {
-                    SetLinearTangents(stroke);
-                }
-                else
-                {
-                    if (inTangentChanged)
-                    {
-                        knot.SetInTangent(
-                            ToNormalized(newInPosition) - knot.Position);
-                    }
-
-                    if (outTangentChanged)
-                    {
-                        knot.SetOutTangent(
-                            ToNormalized(newOutPosition) - knot.Position);
-                    }
-                }
-
-                TraceGeometryBaker.BakeStroke(stroke);
-                EditorUtility.SetDirty(_geometry);
-            }
+                DrawKnotHandle(stroke, knot);
         }
 
-        private void MakeActiveStrokeLinear()
+        private void DrawKnotHandle(
+            TraceStrokeDefinition stroke,
+            TraceBezierKnot knot)
         {
-            if (!_geometry ||
-                _geometry.Strokes.Count == 0)
+            Vector3 position = ToScene(knot.Position);
+            EditorGUI.BeginChangeCheck();
+            Vector3 newPosition = Handles.PositionHandle(
+                position,
+                Quaternion.identity);
+            bool positionChanged = EditorGUI.EndChangeCheck();
+
+            Vector3 newInPosition = default;
+            Vector3 newOutPosition = default;
+            bool inTangentChanged = false;
+            bool outTangentChanged = false;
+
+            if (_knotEditMode == KnotEditMode.Bezier)
+            {
+                Vector3 inPosition = ToScene(knot.Position + knot.InTangent);
+                Vector3 outPosition = ToScene(knot.Position + knot.OutTangent);
+                Color previousColor = Handles.color;
+                Handles.color = Color.cyan;
+                Handles.DrawLine(position, inPosition);
+                Handles.DrawLine(position, outPosition);
+
+                EditorGUI.BeginChangeCheck();
+                newInPosition = Handles.FreeMoveHandle(
+                    inPosition,
+                    TangentHandleSize,
+                    Vector3.zero,
+                    Handles.DotHandleCap);
+                inTangentChanged = EditorGUI.EndChangeCheck();
+
+                EditorGUI.BeginChangeCheck();
+                newOutPosition = Handles.FreeMoveHandle(
+                    outPosition,
+                    TangentHandleSize,
+                    Vector3.zero,
+                    Handles.DotHandleCap);
+                outTangentChanged = EditorGUI.EndChangeCheck();
+                Handles.color = previousColor;
+            }
+
+            if (!positionChanged &&
+                !inTangentChanged &&
+                !outTangentChanged)
             {
                 return;
             }
 
-            Undo.RecordObject(_geometry, "Make trace stroke linear");
-            TraceStrokeDefinition stroke = _geometry.Strokes[_activeStrokeIndex];
-            SetLinearTangents(stroke);
+            Undo.RecordObject(_geometry, "Edit trace knot");
+
+            if (positionChanged)
+                knot.SetPosition(ToNormalized(newPosition));
+
+            if (_knotEditMode == KnotEditMode.Linear)
+            {
+                SetLinearTangents(stroke);
+            }
+            else
+            {
+                if (inTangentChanged)
+                    knot.SetInTangent(ToNormalized(newInPosition) - knot.Position);
+
+                if (outTangentChanged)
+                    knot.SetOutTangent(ToNormalized(newOutPosition) - knot.Position);
+            }
+
             TraceGeometryBaker.BakeStroke(stroke);
+            MarkGeometryChanged();
+        }
+
+        private void MarkGeometryChanged()
+        {
             EditorUtility.SetDirty(_geometry);
+            _validationMessages = null;
             SceneView.RepaintAll();
+        }
+
+        private void DestroyEditorResources()
+        {
+            DestroyImmediate(_assetEditor);
+            DestroyImmediate(_maskedStrokeMaterial);
+            DestroyImmediate(_paintedStrokeMesh);
+            _assetEditor = null;
+            _maskedStrokeMaterial = null;
+            _paintedStrokeMesh = null;
         }
 
         private static void SetLinearTangents(TraceStrokeDefinition stroke)

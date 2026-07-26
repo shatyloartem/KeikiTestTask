@@ -184,7 +184,7 @@ namespace Runtime.Services.Tracing
                 context.Category.InstructionAudioAddress,
                 cancellationToken);
 
-            geometry.ValidateOrThrow();
+            geometry.Validate();
 
             if (!ColorUtility.TryParseHtmlString(context.Level.ColorHex, out Color traceColor))
             {

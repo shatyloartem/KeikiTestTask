@@ -16,7 +16,7 @@ namespace Tests.EditMode
 
             try
             {
-                Assert.DoesNotThrow(geometry.ValidateOrThrow);
+                Assert.DoesNotThrow(geometry.Validate);
             }
             finally
             {
@@ -34,7 +34,7 @@ namespace Tests.EditMode
             try
             {
                 System.IO.InvalidDataException exception = Assert.Throws<
-                    System.IO.InvalidDataException>(geometry.ValidateOrThrow);
+                    System.IO.InvalidDataException>(geometry.Validate);
 
                 StringAssert.Contains("invalid trail width", exception.Message);
             }
@@ -59,7 +59,7 @@ namespace Tests.EditMode
 
             try
             {
-                Assert.DoesNotThrow(geometry.ValidateOrThrow);
+                Assert.DoesNotThrow(geometry.Validate);
             }
             finally
             {

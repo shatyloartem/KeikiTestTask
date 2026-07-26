@@ -2,12 +2,7 @@
     "name": "Tracing.Editor",
     "rootNamespace": "",
     "references": [
-        "Core",
-        "Runtime",
-        "Zenject",
-        "Unity.Addressables",
-        "Unity.Addressables.Editor",
-        "Unity.ResourceManager"
+        "Runtime"
     ],
     "includePlatforms": [
         "Editor"

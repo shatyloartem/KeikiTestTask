@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace Editor.Tracing
 {
-    public static class TraceGeometryBaker
+    internal static class TraceGeometryBaker
     {
-        private const int DenseSamplesPerSegment = 64;
+        private const int SamplesPerBezierSegment = 64;
         private const float BakedPointSpacing = 0.008f;
 
-        public static void BakeAsset(TraceGeometryAsset geometry)
+        internal static void BakeAsset(TraceGeometryAsset geometry)
         {
             if (!geometry)
                 throw new ArgumentNullException(nameof(geometry));
@@ -24,10 +24,11 @@ namespace Editor.Tracing
             EditorUtility.SetDirty(geometry);
         }
 
-        public static void BakeStroke(TraceStrokeDefinition stroke)
+        internal static void BakeStroke(TraceStrokeDefinition stroke)
         {
             if (stroke == null)
                 throw new ArgumentNullException(nameof(stroke));
+
             if (stroke.Knots == null || stroke.Knots.Count < 2)
                 throw new InvalidOperationException($"Stroke '{stroke.Id}' needs at least two Bezier knots.");
 
@@ -47,7 +48,7 @@ namespace Editor.Tracing
                 float distance = i == pointCount - 1
                     ? totalLength
                     : totalLength * i / (pointCount - 1f);
-                bakedPoints.Add(SampleDense(densePoints, denseLengths, distance));
+                bakedPoints.Add(SampleDensePolyline(densePoints, denseLengths, distance));
                 bakedLengths.Add(distance);
             }
 
@@ -58,7 +59,7 @@ namespace Editor.Tracing
         {
             IReadOnlyList<TraceBezierKnot> knots = stroke.Knots;
             int segmentCount = stroke.Closed ? knots.Count : knots.Count - 1;
-            List<Vector2> points = new(segmentCount * DenseSamplesPerSegment + 1)
+            List<Vector2> points = new(segmentCount * SamplesPerBezierSegment + 1)
             {
                 knots[0].Position
             };
@@ -72,9 +73,9 @@ namespace Editor.Tracing
                 Vector2 p2 = to.Position + to.InTangent;
                 Vector2 p3 = to.Position;
 
-                for (int sample = 1; sample <= DenseSamplesPerSegment; sample++)
+                for (int sample = 1; sample <= SamplesPerBezierSegment; sample++)
                 {
-                    float t = sample / (float)DenseSamplesPerSegment;
+                    float t = sample / (float)SamplesPerBezierSegment;
                     points.Add(EvaluateCubic(p0, p1, p2, p3, t));
                 }
             }
@@ -96,7 +97,7 @@ namespace Editor.Tracing
             return lengths;
         }
 
-        private static Vector2 SampleDense(
+        private static Vector2 SampleDensePolyline(
             IReadOnlyList<Vector2> points,
             IReadOnlyList<float> lengths,
             float distance)
