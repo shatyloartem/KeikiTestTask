@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Runtime.Domain.Levels.Extensions
@@ -14,16 +15,24 @@ namespace Runtime.Domain.Levels.Extensions
             if (catalog.Categories == null || catalog.Categories.Count == 0)
                 throw new InvalidDataException("Levels JSON must contain at least one category.");
 
+            catalog.Gameplay.Validate();
+
+            HashSet<string> categoryIds = new();
             HashSet<string> levelIds = new();
 
             foreach (LevelCategory category in catalog.Categories)
             {
                 if (category == null ||
                     string.IsNullOrWhiteSpace(category.Id) ||
-                    string.IsNullOrWhiteSpace(category.Title))
+                    string.IsNullOrWhiteSpace(category.Title) ||
+                    string.IsNullOrWhiteSpace(category.InstructionAudioAddress))
                 {
-                    throw new InvalidDataException("Every level category must have an id and title.");
+                    throw new InvalidDataException(
+                        "Every level category must have an id, title and instruction audio address.");
                 }
+
+                if (!categoryIds.Add(category.Id))
+                    throw new InvalidDataException($"Category id '{category.Id}' is duplicated.");
 
                 if (category.Levels == null || category.Levels.Count == 0)
                     throw new InvalidDataException($"Category '{category.Id}' does not contain levels.");
@@ -33,7 +42,8 @@ namespace Runtime.Domain.Levels.Extensions
                     if (level == null ||
                         string.IsNullOrWhiteSpace(level.Id) ||
                         string.IsNullOrWhiteSpace(level.ColorHex) ||
-                        string.IsNullOrWhiteSpace(level.IconAddress))
+                        string.IsNullOrWhiteSpace(level.SpriteAddress) ||
+                        string.IsNullOrWhiteSpace(level.TraceGeometryAddress))
                     {
                         throw new InvalidDataException(
                             $"Category '{category.Id}' contains an invalid level.");
@@ -43,8 +53,10 @@ namespace Runtime.Domain.Levels.Extensions
                         throw new InvalidDataException($"Level id '{level.Id}' is duplicated.");
 
                     if (!ColorUtility.TryParseHtmlString(level.ColorHex, out _))
+                    {
                         throw new InvalidDataException(
                             $"Level '{level.Id}' has invalid color '{level.ColorHex}'.");
+                    }
                 }
             }
         }

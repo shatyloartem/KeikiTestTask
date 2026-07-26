@@ -1,23 +1,28 @@
+using System;
 using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Runtime.Domain.Levels;
 using Runtime.Domain.Levels.Extensions;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace Runtime.Infrastructure.Storage.Levels
 {
-    public sealed class JsonLevelRepository : ILevelRepository
+    public sealed class JsonLevelRepository : ILevelRepository, IDisposable
     {
-        private const string FileName = "levels.json";
+        public const string CatalogAddress = "configs/levels";
 
-        private readonly string _filePath = Path.Combine(Application.persistentDataPath, FileName);
         private readonly SemaphoreSlim _loadSemaphore = new(1, 1);
 
+        private AsyncOperationHandle<TextAsset> _catalogHandle;
         private LevelCatalog _cachedCatalog;
+        private bool _isDisposed;
 
         public async UniTask<LevelCatalog> LoadAsync(CancellationToken ct = default)
         {
+            ThrowIfDisposed();
             ct.ThrowIfCancellationRequested();
 
             LevelCatalog cachedCatalog = Volatile.Read(ref _cachedCatalog);
@@ -28,19 +33,40 @@ namespace Runtime.Infrastructure.Storage.Levels
 
             try
             {
+                ThrowIfDisposed();
+
                 cachedCatalog = Volatile.Read(ref _cachedCatalog);
                 if (cachedCatalog != null)
                     return cachedCatalog;
 
-                string json = await UniTask.RunOnThreadPool(EnsureFileAndRead, cancellationToken: ct);
+                AsyncOperationHandle<TextAsset> handle =
+                    Addressables.LoadAssetAsync<TextAsset>(CatalogAddress);
 
-                ct.ThrowIfCancellationRequested();
+                try
+                {
+                    TextAsset textAsset = await handle.ToUniTask(cancellationToken: ct);
 
-                LevelCatalog catalog = JsonUtility.FromJson<LevelCatalog>(json);
-                catalog.Validate();
+                    if (!textAsset)
+                    {
+                        throw new InvalidDataException(
+                            $"Addressable JSON catalog '{CatalogAddress}' returned null.");
+                    }
 
-                Volatile.Write(ref _cachedCatalog, catalog);
-                return catalog;
+                    LevelCatalog catalog = JsonUtility.FromJson<LevelCatalog>(textAsset.text);
+                    catalog.Validate();
+
+                    _catalogHandle = handle;
+                    Volatile.Write(ref _cachedCatalog, catalog);
+
+                    return catalog;
+                }
+                catch
+                {
+                    if (handle.IsValid())
+                        Addressables.Release(handle);
+
+                    throw;
+                }
             }
             finally
             {
@@ -48,22 +74,24 @@ namespace Runtime.Infrastructure.Storage.Levels
             }
         }
 
-        private string EnsureFileAndRead()
+        public void Dispose()
         {
-            string directory = Path.GetDirectoryName(_filePath);
+            if (_isDisposed)
+                return;
 
-            if (!string.IsNullOrEmpty(directory))
-                Directory.CreateDirectory(directory);
+            _isDisposed = true;
+            Volatile.Write(ref _cachedCatalog, null);
 
-            if (!File.Exists(_filePath))
-            {
-                LevelCatalog defaultCatalog = DefaultLevelCatalogFactory.Create();
-                string defaultJson = JsonUtility.ToJson(defaultCatalog, true);
+            if (_catalogHandle.IsValid())
+                Addressables.Release(_catalogHandle);
 
-                File.WriteAllText(_filePath, defaultJson);
-            }
+            _loadSemaphore.Dispose();
+        }
 
-            return File.ReadAllText(_filePath);
+        private void ThrowIfDisposed()
+        {
+            if (_isDisposed)
+                throw new ObjectDisposedException(nameof(JsonLevelRepository));
         }
     }
 }

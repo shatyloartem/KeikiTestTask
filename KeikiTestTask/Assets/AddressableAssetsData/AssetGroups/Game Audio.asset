@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Game Audio
+  m_EditorClassIdentifier: 
+  m_GroupName: Game Audio
+  m_GUID: e1fef7ead32668348b95a2cb1551e0a3
+  m_SerializeEntries:
+  - m_GUID: 213370a8755e762478ca91475747b4a3
+    m_Address: audio/praise/thats-good
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6e13fc18ed48aff44bd7cff74b7356fe
+    m_Address: audio/instruction/number
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d50d22a65a8365b4e8a4d58e30e31295
+    m_Address: audio/instruction/letter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d9aefb7287a6f924da9b1ed0cda0c11c
+    m_Address: audio/praise/awesome
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e4ca1f2aca219604ab913cb9cc759765
+    m_Address: audio/praise/excellent
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: ead354ef3b1a4d9408256048b9ed6895, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: a1b9cc612b155ca4ebbb3e42d2664b5f, type: 2}
+    - {fileID: 11400000, guid: db256bc94363fab45945d236d668a9df, type: 2}

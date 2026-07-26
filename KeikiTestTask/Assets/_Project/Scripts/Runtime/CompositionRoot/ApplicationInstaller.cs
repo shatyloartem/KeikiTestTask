@@ -1,6 +1,7 @@
 using Core.Configuration;
 using Core.SceneManagement;
 using Core.StateMachine;
+using Runtime.Infrastructure.AssetManagement;
 using Runtime.Infrastructure.Storage.Levels;
 using Runtime.Services.Levels;
 using Runtime.States;
@@ -23,6 +24,8 @@ namespace Runtime.CompositionRoot
             BindSceneLoader();
 
             BindStateMachine();
+
+            BindAssetManagement();
 
             BindLevels();
         }
@@ -56,16 +59,27 @@ namespace Runtime.CompositionRoot
                 .AsSingle();
         }
 
+        private void BindAssetManagement()
+        {
+            Container
+                .BindInterfacesTo<AddressableGameAssetProvider>()
+                .AsSingle();
+        }
+
         private void BindLevels()
         {
             Container
-                .Bind<ILevelRepository>()
-                .To<JsonLevelRepository>()
+                .BindInterfacesTo<JsonLevelRepository>()
                 .AsSingle();
 
             Container
                 .Bind<ISelectedLevelStore>()
                 .To<SelectedLevelStore>()
+                .AsSingle();
+
+            Container
+                .Bind<ILevelSequenceService>()
+                .To<LevelSequenceService>()
                 .AsSingle();
         }
     }

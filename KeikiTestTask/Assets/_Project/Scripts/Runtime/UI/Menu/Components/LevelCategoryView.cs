@@ -33,10 +33,10 @@ namespace Runtime.UI.Menu.Components
 
             foreach (LevelDefinition level in category.Levels)
             {
-                if (!icons.TryGetValue(level.IconAddress, out Sprite icon))
+                if (!icons.TryGetValue(level.SpriteAddress, out Sprite icon))
                 {
                     throw new InvalidOperationException(
-                        $"Icon '{level.IconAddress}' was not loaded for level '{level.Id}'.");
+                        $"Sprite '{level.SpriteAddress}' was not loaded for level '{level.Id}'.");
                 }
 
                 LevelCardView card = Instantiate(_cardPrefab, _content);

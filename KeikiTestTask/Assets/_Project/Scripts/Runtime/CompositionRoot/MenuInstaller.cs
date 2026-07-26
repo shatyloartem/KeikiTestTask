@@ -1,6 +1,5 @@
 using System;
 using Core.UI;
-using Runtime.Infrastructure.AssetManagement;
 using Runtime.UI.Menu;
 using UnityEngine;
 using Zenject;
@@ -16,9 +15,7 @@ namespace Runtime.CompositionRoot
             ValidateViews();
 
             BindViews();
-            
-            BindIconProvider();
-            
+
             BindPresenters();
         }
 
@@ -49,13 +46,6 @@ namespace Runtime.CompositionRoot
             }
         }
 
-        private void BindIconProvider()
-        {
-            Container
-                .BindInterfacesAndSelfTo<AddressableLevelIconProvider>()
-                .AsSingle();   
-        }
-        
         private void BindPresenters()
         {
             Container
