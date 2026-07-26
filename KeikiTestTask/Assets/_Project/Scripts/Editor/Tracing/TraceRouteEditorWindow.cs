@@ -15,7 +15,6 @@ namespace Editor.Tracing
 
         private const float SceneScale = 10f;
         private const float TraceSurfaceAspect = 0.86f;
-        private const float SceneFrameSize = SceneScale * 0.62f;
         private const float PathLineWidth = 4f;
         private const float DirectionArrowSize = 0.18f;
         private const float TangentHandleSize = 0.09f;
@@ -227,19 +226,13 @@ namespace Editor.Tracing
         {
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Frame Route"))
-                    FrameRouteInSceneView();
-
                 if (GUILayout.Button("Bake All"))
                     BakeAll();
 
                 using (new EditorGUI.DisabledScope(!HasStrokes))
                 {
-                    if (GUILayout.Button("Reverse Active"))
+                    if (GUILayout.Button("Reverse Stroke Direction"))
                         ReverseActiveStroke();
-
-                    if (GUILayout.Button("Make Active Linear"))
-                        MakeActiveStrokeLinear();
                 }
 
                 if (GUILayout.Button("Validate"))
@@ -264,19 +257,6 @@ namespace Editor.Tracing
 
             Undo.RecordObject(_geometry, "Reverse trace stroke");
             stroke.Reverse();
-            TraceGeometryBaker.BakeStroke(stroke);
-            MarkGeometryChanged();
-        }
-
-        private void MakeActiveStrokeLinear()
-        {
-            TraceStrokeDefinition stroke = ActiveStroke;
-
-            if (stroke == null)
-                return;
-
-            Undo.RecordObject(_geometry, "Make trace stroke linear");
-            SetLinearTangents(stroke);
             TraceGeometryBaker.BakeStroke(stroke);
             MarkGeometryChanged();
         }
@@ -430,23 +410,6 @@ namespace Editor.Tracing
             }
 
             return container;
-        }
-
-        private static void FrameRouteInSceneView()
-        {
-            SceneView sceneView = SceneView.lastActiveSceneView;
-
-            if (!sceneView)
-                return;
-
-            sceneView.in2DMode = true;
-            sceneView.LookAt(
-                Vector3.zero,
-                Quaternion.identity,
-                SceneFrameSize,
-                true,
-                true);
-            sceneView.Repaint();
         }
 
         private static void DrawBakedPath(TraceStrokeDefinition stroke)
