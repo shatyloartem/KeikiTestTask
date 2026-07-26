@@ -3,7 +3,7 @@ using System.Threading;
 using Core.StateMachine;
 using Core.UI;
 using Cysharp.Threading.Tasks;
-using Runtime.Services.Tracing;
+using Runtime.Services.Tracing.Flow;
 using Runtime.States;
 using UnityEngine;
 

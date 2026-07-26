@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Runtime.Services.Tracing
+namespace Runtime.Services.Tracing.Input
 {
     public readonly struct TraceSampleResult
     {
@@ -21,8 +21,6 @@ namespace Runtime.Services.Tracing
         public Vector2 Position { get; }
         public Vector2 Tangent { get; }
 
-        public bool ProgressChanged =>
-            Status == TraceSampleStatus.Advanced ||
-            Status == TraceSampleStatus.Completed;
+        public bool ProgressChanged => Status is TraceSampleStatus.Advanced or TraceSampleStatus.Completed;
     }
 }

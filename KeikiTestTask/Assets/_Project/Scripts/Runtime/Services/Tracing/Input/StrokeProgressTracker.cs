@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Runtime.Domain.Tracing;
 using UnityEngine;
 
-namespace Runtime.Services.Tracing
+namespace Runtime.Services.Tracing.Input
 {
     public sealed class StrokeProgressTracker
     {
@@ -47,15 +47,9 @@ namespace Runtime.Services.Tracing
 
             _points = stroke.BakedPoints;
             _cumulativeLengths = stroke.CumulativeLengths;
-            _totalLength = Mathf.Max(
-                Mathf.Epsilon,
-                stroke.TotalLength - Mathf.Max(0f, endInset));
-            _startDistance = Mathf.Clamp(
-                Mathf.Max(0f, startInset),
-                0f,
-                Mathf.Max(0f, _totalLength - Mathf.Epsilon));
-            _corridorRadius =
-                corridorWidth * 0.5f + Mathf.Max(0f, inputTolerancePadding);
+            _totalLength = Mathf.Max(Mathf.Epsilon, stroke.TotalLength - Mathf.Max(0f, endInset));
+            _startDistance = Mathf.Clamp(Mathf.Max(0f, startInset), 0f, Mathf.Max(0f, _totalLength - Mathf.Epsilon));
+            _corridorRadius = corridorWidth * 0.5f + Mathf.Max(0f, inputTolerancePadding);
             _reacquireTolerance = Mathf.Max(0f, reacquireTolerance);
             _forwardSearchWindow = Mathf.Max(_reacquireTolerance, forwardSearchWindow);
             _directionEpsilon = Mathf.Max(0f, directionEpsilon);
@@ -68,8 +62,7 @@ namespace Runtime.Services.Tracing
         public float TargetDistance => _totalLength;
         public float NormalizedProgress =>
             _totalLength - _startDistance > Mathf.Epsilon
-            ? (ProgressDistance - _startDistance) /
-              (_totalLength - _startDistance)
+            ? (ProgressDistance - _startDistance) / (_totalLength - _startDistance)
             : 0f;
         public bool IsCompleted { get; private set; }
 
@@ -154,17 +147,16 @@ namespace Runtime.Services.Tracing
         private bool TryProject(Vector2 point, out Projection bestProjection)
         {
             float minimumPathDistance = Mathf.Max(0f, ProgressDistance - _reacquireTolerance * 2f);
-            float maximumPathDistance = Mathf.Min(
-                _totalLength,
-                ProgressDistance + _forwardSearchWindow);
+            float maximumPathDistance = Mathf.Min(_totalLength, ProgressDistance + _forwardSearchWindow);
             float bestSqrDistance = float.PositiveInfinity;
             bool found = false;
-
+            
             int startSegment = Mathf.Max(
                 0,
                 Mathf.Min(
                     _segmentHint - 2,
                     TracePathUtility.FindSegment(_cumulativeLengths, minimumPathDistance)));
+            
             int endSegment = TracePathUtility.FindSegment(
                 _cumulativeLengths,
                 maximumPathDistance);

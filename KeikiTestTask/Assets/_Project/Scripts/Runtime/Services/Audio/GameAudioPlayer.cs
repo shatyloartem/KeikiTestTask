@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace Runtime.Services.Tracing
+namespace Runtime.Services.Audio
 {
     public sealed class GameAudioPlayer : IDisposable
     {

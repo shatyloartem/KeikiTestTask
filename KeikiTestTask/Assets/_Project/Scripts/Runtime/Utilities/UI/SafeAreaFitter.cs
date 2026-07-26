@@ -12,6 +12,7 @@ namespace Runtime.Utilities.UI
         private void Awake()
         {
             _rectTransform = (RectTransform)transform;
+            
             Apply();
         }
 

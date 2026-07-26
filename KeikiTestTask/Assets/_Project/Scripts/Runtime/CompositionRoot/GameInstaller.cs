@@ -1,7 +1,11 @@
 using System;
 using Core.UI;
 using Runtime.Infrastructure.AssetManagement;
+using Runtime.Services.Audio;
 using Runtime.Services.Tracing;
+using Runtime.Services.Tracing.Assets;
+using Runtime.Services.Tracing.Flow;
+using Runtime.Services.Tracing.Hints;
 using Runtime.UI.Game;
 using UnityEngine;
 using Zenject;
@@ -77,6 +81,22 @@ namespace Runtime.CompositionRoot
 
             Container
                 .BindInterfacesAndSelfTo<GameAudioPlayer>()
+                .AsSingle();
+
+            Container
+                .Bind<TraceAssetLoader>()
+                .AsSingle();
+
+            Container
+                .BindInterfacesAndSelfTo<TraceInputController>()
+                .AsSingle();
+
+            Container
+                .BindInterfacesAndSelfTo<TraceHintController>()
+                .AsSingle();
+
+            Container
+                .Bind<TraceStrokePlayer>()
                 .AsSingle();
 
             Container

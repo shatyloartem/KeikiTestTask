@@ -1,4 +1,4 @@
-namespace Runtime.Services.Tracing
+namespace Runtime.Services.Tracing.Input
 {
     public enum TraceSampleStatus
     {

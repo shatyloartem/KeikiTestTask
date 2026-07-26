@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Runtime.Domain.Tracing;
-using Runtime.Services.Tracing;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,8 +21,7 @@ namespace Runtime.UI.Game
             float widthNormalized,
             Color trailColor)
         {
-            _stroke = stroke
-                ?? throw new ArgumentNullException(nameof(stroke));
+            _stroke = stroke ?? throw new ArgumentNullException(nameof(stroke));
             _widthNormalized = Mathf.Max(0.001f, widthNormalized);
             color = trailColor;
             raycastTarget = false;
@@ -62,19 +60,13 @@ namespace Runtime.UI.Game
                 return;
 
             Rect rect = rectTransform.rect;
-            float halfWidth = Mathf.Min(rect.width, rect.height) *
-                              _widthNormalized *
-                              0.5f;
+            float halfWidth = Mathf.Min(rect.width, rect.height) * _widthNormalized * 0.5f;
 
             for (int i = 0; i < _renderPoints.Count; i++)
             {
                 Vector2 current = NormalizedToLocal(_renderPoints[i], rect);
-                Vector2 previous = NormalizedToLocal(
-                    _renderPoints[Mathf.Max(0, i - 1)],
-                    rect);
-                Vector2 next = NormalizedToLocal(
-                    _renderPoints[Mathf.Min(_renderPoints.Count - 1, i + 1)],
-                    rect);
+                Vector2 previous = NormalizedToLocal(_renderPoints[Mathf.Max(0, i - 1)], rect);
+                Vector2 next = NormalizedToLocal(_renderPoints[Mathf.Min(_renderPoints.Count - 1, i + 1)], rect);
                 Vector2 tangent = (next - previous).normalized;
                 Vector2 normal = new(-tangent.y, tangent.x);
 
